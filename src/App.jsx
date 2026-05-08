@@ -215,6 +215,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dark, setDark] = useState(() => localStorage.getItem("il_dark")==="true");
+  const d = dark ? DARK : LIGHT;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => { setSession(session); setLoading(false); });
@@ -222,7 +223,19 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const d = dark ? DARK : LIGHT;
+  useEffect(() => {
+    document.documentElement.style.margin = "0";
+    document.documentElement.style.background = d.bg;
+    document.documentElement.style.minHeight = "100%";
+    document.body.style.margin = "0";
+    document.body.style.background = d.bg;
+    document.body.style.minHeight = "100%";
+    const root = document.getElementById("root");
+    if (root) {
+      root.style.minHeight = "100%";
+      root.style.background = d.bg;
+    }
+  }, [d.bg]);
 
   if (loading) return (
     <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:d.bg, color:d.text, fontSize:15, fontFamily:"-apple-system,sans-serif" }}>
@@ -339,7 +352,7 @@ function AuthPage({ d, dark, toggleDark }) {
   }
 
   return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100vh", background:d.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", padding:24 }}>
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100dvh", background:d.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", padding:24, boxSizing:"border-box" }}>
       <div style={{ width:mode==="signup"?820:400, maxWidth:"100%", display:"grid", gridTemplateColumns:mode==="signup"?"repeat(auto-fit,minmax(320px,1fr))":"1fr", overflow:"hidden", background:d.surface, border:`1px solid ${d.border}`, borderRadius:22, boxShadow:"0 24px 80px rgba(0,0,0,.14)" }}>
         {mode==="signup"&&(
           <div style={{ padding:34, background:`linear-gradient(145deg, ${d.accentHover}, ${d.accent})`, color:"#fff", display:"flex", flexDirection:"column", justifyContent:"space-between", minHeight:520 }}>
@@ -486,7 +499,7 @@ function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
   }
 
   return (
-    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:d.bg, color:d.text, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", padding:24 }}>
+    <div style={{ minHeight:"100dvh", display:"flex", alignItems:"center", justifyContent:"center", background:d.bg, color:d.text, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", padding:24, boxSizing:"border-box" }}>
       <div style={{ width:720, background:d.surface, border:`1px solid ${d.border}`, borderRadius:22, padding:34, boxShadow:"0 24px 80px rgba(0,0,0,.14)" }}>
         <div style={{ display:"flex", justifyContent:"space-between", gap:16, alignItems:"flex-start", marginBottom:24 }}>
           <div>
