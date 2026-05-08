@@ -127,7 +127,15 @@ function typeLabel(type, labels = {}) {
 }
 function hasCompleteProfile(user) {
   const meta = user?.user_metadata || {};
-  return Boolean(meta.weight_lbs && meta.height_in && meta.split_id);
+  return Boolean(meta.profile_name && meta.weight_lbs && meta.height_in && meta.split_id);
+}
+function fmtHeight(totalInches) {
+  if (!totalInches) return "-";
+  return `${Math.floor(totalInches / 12)}'${totalInches % 12}"`;
+}
+function splitName(splitId) {
+  if (splitId === "custom") return "Custom";
+  return SPLIT_TEMPLATES.find(s => s.id === splitId)?.name || "Custom";
 }
 function defaultCustomRoutine() {
   return WEEK_DAYS.map(day => ({ day, type:"rest", label:"Rest", exercises:[] }));
@@ -222,11 +230,13 @@ export default function App() {
 }
 
 // AUTH PAGE
-function parseProfile({ weight, heightFt, heightIn, splitId }) {
+function parseProfile({ profileName, weight, heightFt, heightIn, splitId }) {
+  const name = profileName.trim();
   const weightLbs = Number.parseFloat(weight);
   const feet = Number.parseInt(heightFt, 10);
   const inches = Number.parseInt(heightIn || "0", 10);
 
+  if (!name) return { error:"Enter a profile name." };
   if (!Number.isFinite(weightLbs) || weightLbs <= 0) return { error:"Enter your weight." };
   if (!Number.isFinite(feet) || feet <= 0) return { error:"Enter your height in feet." };
   if (!Number.isFinite(inches) || inches < 0 || inches > 11) return { error:"Height inches must be 0 through 11." };
@@ -234,6 +244,7 @@ function parseProfile({ weight, heightFt, heightIn, splitId }) {
 
   return {
     data:{
+      profile_name:name,
       weight_lbs:Math.round(weightLbs * 10) / 10,
       height_in:(feet * 12) + inches,
       split_id:splitId,
@@ -246,6 +257,7 @@ function AuthPage({ d, dark, toggleDark }) {
   const [mode, setMode]     = useState("login");
   const [email, setEmail]   = useState("");
   const [pass, setPass]     = useState("");
+  const [profileName, setProfileName] = useState("");
   const [weight, setWeight] = useState("");
   const [heightFt, setHeightFt] = useState("");
   const [heightIn, setHeightIn] = useState("");
@@ -260,7 +272,7 @@ function AuthPage({ d, dark, toggleDark }) {
       const { error } = await supabase.auth.signInWithPassword({ email, password:pass });
       if (error) setError(error.message);
     } else {
-      const profile = parseProfile({ weight, heightFt, heightIn, splitId });
+      const profile = parseProfile({ profileName, weight, heightFt, heightIn, splitId });
       if (profile.error) {
         setError(profile.error);
         setLoading(false);
@@ -322,6 +334,10 @@ function AuthPage({ d, dark, toggleDark }) {
             </div>
             {mode==="signup"&&(
               <>
+                <div style={{ marginBottom:12 }}>
+                  <label style={hs(d).label}>Profile Name</label>
+                  <input style={hs(d).input} type="text" placeholder="Adam" value={profileName} onChange={e=>setProfileName(e.target.value)} />
+                </div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:12 }}>
                   <div>
                     <label style={hs(d).label}>Weight</label>
@@ -367,6 +383,7 @@ function AuthPage({ d, dark, toggleDark }) {
 
 function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
   const meta = session.user.user_metadata || {};
+  const [profileName, setProfileName] = useState(meta.profile_name || "");
   const [weight, setWeight] = useState(meta.weight_lbs || "");
   const [heightFt, setHeightFt] = useState(meta.height_in ? Math.floor(meta.height_in / 12) : "");
   const [heightIn, setHeightIn] = useState(meta.height_in ? meta.height_in % 12 : "");
@@ -376,7 +393,7 @@ function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
 
   async function saveProfile() {
     setError("");
-    const profile = parseProfile({ weight, heightFt, heightIn, splitId });
+    const profile = parseProfile({ profileName, weight, heightFt, heightIn, splitId });
     if (profile.error) {
       setError(profile.error);
       return;
@@ -403,6 +420,11 @@ function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
             <div style={{ color:d.text3, fontSize:14, marginTop:4 }}>A few details help IronLog start on the right split.</div>
           </div>
           <button onClick={toggleDark} style={hs(d).btnSm}>{dark ? "Light" : "Dark"}</button>
+        </div>
+
+        <div style={{ marginBottom:12 }}>
+          <label style={hs(d).label}>Profile Name</label>
+          <input style={hs(d).input} type="text" value={profileName} placeholder="Adam" onChange={e=>setProfileName(e.target.value)} />
         </div>
 
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:16 }}>
@@ -434,8 +456,9 @@ function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
 // MAIN APP
 function MainApp({ session, d, dark, toggleDark }) {
   const userId = session.user.id;
-  const profileSplit = session.user.user_metadata?.split_id;
-  const profileWeight = session.user.user_metadata?.weight_lbs;
+  const profile = session.user.user_metadata || {};
+  const profileSplit = profile.split_id;
+  const profileWeight = profile.weight_lbs;
   const [workouts, setWorkouts]   = useState([]);
   const [bwLog, setBwLog]         = useState([]);
   const [customEx, setCustomEx]   = useState([]);
@@ -577,14 +600,15 @@ function MainApp({ session, d, dark, toggleDark }) {
     { id:"prs",        label:"Personal Records", icon:<TrendIcon /> },
     { id:"bodyweight", label:"Body Weight",      icon:<ScaleIcon /> },
     { id:"routines",   label:"Routines",         icon:<ListIcon /> },
+    { id:"profile",    label:"Profile",          icon:<UserIcon /> },
   ];
 
   return (
     <div style={{ display:"flex", height:"100vh", overflow:"hidden", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", fontSize:15, color:d.text, background:d.bg }}>
       <aside style={{ width:220, minWidth:220, background:d.surface, borderRight:`1px solid ${d.border}`, display:"flex", flexDirection:"column" }}>
-        <div style={{ padding:"22px 20px 14px" }}>
-          <div style={{ fontSize:20, fontWeight:700, letterSpacing:"-0.5px", color:d.text }}>IronLog</div>
-          <div style={{ fontSize:11, color:d.text3, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{session.user.email}</div>
+          <div style={{ padding:"22px 20px 14px" }}>
+            <div style={{ fontSize:20, fontWeight:700, letterSpacing:"-0.5px", color:d.text }}>IronLog</div>
+          <div style={{ fontSize:11, color:d.text3, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{profile.profile_name || session.user.email}</div>
         </div>
         <div style={{ padding:"4px 12px 6px", fontSize:11, fontWeight:600, color:d.text3, letterSpacing:".08em", textTransform:"uppercase" }}>Menu</div>
         {navItems.map(n => (
@@ -619,6 +643,7 @@ function MainApp({ session, d, dark, toggleDark }) {
             {page==="prs"        && <PRs prs={prs} workouts={workouts} allEx={allEx} d={d} />}
             {page==="bodyweight" && <BodyWeight bwLog={bwLog} saveBw={handleSaveBw} deleteBw={handleDeleteBw} showToast={showToast} d={d} />}
             {page==="routines"   && <Routines splitTemplates={SPLIT_TEMPLATES} selectedSplitId={selectedSplitId} setSelectedSplitId={setSelectedSplitId} customRoutine={customRoutine} setCustomRoutine={setCustomRoutine} routine={activeRoutine} prs={prs} allEx={allEx} navigate={navigate} setLogState={setLogState} showToast={showToast} typeLabels={typeLabels} d={d} />}
+            {page==="profile"    && <Profile profile={profile} email={session.user.email} prs={prs} bwLog={bwLog} allEx={allEx} selectedSplitId={selectedSplitId} d={d} />}
           </>
         )}
       </main>
@@ -657,6 +682,81 @@ function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeL
           <button style={hs(d).btnSm} onClick={()=>navigate("history")}>View all</button>
         </div>
         {recent.length ? recent.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={allEx} onDelete={deleteWorkout} typeLabels={typeLabels} d={d}/>) : <Empty icon="" title="No workouts yet" desc="Head to Log Workout to get started" d={d}/>}
+      </div>
+    </div>
+  );
+}
+
+function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, d }) {
+  const sortedWeight = [...bwLog].sort((a,b)=>b.date-a.date);
+  const latestWeight = sortedWeight[0];
+  const oldestWeight = sortedWeight[sortedWeight.length-1];
+  const weightChange = latestWeight && oldestWeight && sortedWeight.length > 1
+    ? (latestWeight.weight - oldestWeight.weight).toFixed(1)
+    : null;
+  const prRows = Object.entries(prs)
+    .map(([id, pr]) => ({ id, pr, ex:allEx.find(e=>e.id===id) }))
+    .filter(row => row.ex)
+    .sort((a,b)=>b.pr.date-a.pr.date);
+
+  return (
+    <div>
+      <h1 style={hs(d).h1}>Profile</h1>
+      <p style={hs(d).sub}>Your account, body stats, and strongest lifts</p>
+
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 1.3fr", gap:16, marginBottom:16 }}>
+        <div style={hs(d).card}>
+          <div style={{ width:58, height:58, borderRadius:"50%", background:d.accentSoft, color:d.accentHover, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, fontWeight:800, marginBottom:14 }}>
+            {(profile.profile_name || email || "U").charAt(0).toUpperCase()}
+          </div>
+          <h2 style={{ fontSize:22, margin:"0 0 4px", color:d.text }}>{profile.profile_name}</h2>
+          <div style={{ fontSize:13, color:d.text3, marginBottom:16 }}>{email}</div>
+          <div style={{ display:"grid", gap:9, fontSize:13 }}>
+            <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ color:d.text3 }}>Height</span><strong>{fmtHeight(profile.height_in)}</strong></div>
+            <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ color:d.text3 }}>Starting Weight</span><strong>{profile.weight_lbs ? `${profile.weight_lbs} lbs` : "-"}</strong></div>
+            <div style={{ display:"flex", justifyContent:"space-between" }}><span style={{ color:d.text3 }}>Workout Split</span><strong>{splitName(selectedSplitId || profile.split_id)}</strong></div>
+          </div>
+        </div>
+
+        <div style={hs(d).card}>
+          <h3 style={hs(d).h3}>Weight</h3>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
+            {[
+              { label:"Current", val:latestWeight?latestWeight.weight+"lbs":"-" },
+              { label:"Change", val:weightChange!==null?(weightChange>0?"+":"")+weightChange+"lbs":"-" },
+              { label:"Entries", val:bwLog.length },
+            ].map(item=>(
+              <div key={item.label} style={{ background:d.surface2, border:`1px solid ${d.border}`, borderRadius:8, padding:14 }}>
+                <div style={{ fontSize:22, fontWeight:800, color:d.text }}>{item.val}</div>
+                <div style={{ fontSize:11, color:d.text3, marginTop:3, fontWeight:700, textTransform:"uppercase", letterSpacing:".06em" }}>{item.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={hs(d).card}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+          <h3 style={{...hs(d).h3,marginBottom:0}}>Personal Records</h3>
+          <span style={{ fontSize:12, color:d.text3 }}>{prRows.length} tracked</span>
+        </div>
+        {prRows.length ? (
+          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+            <thead><tr>{["Exercise","Best","Est. 1RM","Date"].map(h=><th key={h} style={hs(d).th}>{h}</th>)}</tr></thead>
+            <tbody>
+              {prRows.map(({ id, pr, ex })=>(
+                <tr key={id}>
+                  <td style={{...hs(d).td,fontWeight:600}}>{ex.name}</td>
+                  <td style={hs(d).td}>{pr.weight} lbs x {pr.reps}</td>
+                  <td style={{...hs(d).td,color:d.text2}}>{Math.round(pr.weight*(1+pr.reps/30))} lbs</td>
+                  <td style={{...hs(d).td,color:d.text3}}>{fmtDate(pr.date)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <Empty icon="" title="No PRs yet" desc="Log workouts to start filling this in" d={d}/>
+        )}
       </div>
     </div>
   );
@@ -1289,3 +1389,4 @@ function ClockIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fi
 function TrendIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>; }
 function ListIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg>; }
 function ScaleIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6l9-3 9 3"/><path d="M3 6v14a1 1 0 001 1h16a1 1 0 001-1V6"/><path d="M12 3v18"/></svg>; }
+function UserIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>; }
