@@ -582,9 +582,9 @@ function MainApp({ session, d, dark, toggleDark }) {
   const allEx    = useMemo(() => [...DEFAULT_EXERCISES, ...customEx], [customEx]);
   const prs      = useMemo(() => calcPRs(workouts), [workouts]);
   const streak   = useMemo(() => calcStreak(workouts), [workouts]);
-  const todayDay = useMemo(() => getTodayRoutineDay(activeRoutine), [activeRoutine]);
   const selectedTemplate = SPLIT_TEMPLATES.find(s => s.id === selectedSplitId) || SPLIT_TEMPLATES[0];
   const activeRoutine = selectedSplitId === "custom" ? customRoutine : selectedTemplate.days;
+  const todayDay = useMemo(() => getTodayRoutineDay(activeRoutine), [activeRoutine]);
   const typeLabels = useMemo(() => {
     const entries = [...SPLIT_TEMPLATES.flatMap(s => s.days), ...customRoutine]
       .filter(day => day.type !== "rest")
