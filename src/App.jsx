@@ -272,9 +272,40 @@ function AuthPage({ d, dark, toggleDark }) {
   const [heightFt, setHeightFt] = useState("");
   const [heightIn, setHeightIn] = useState("");
   const [splitId, setSplitId] = useState("ppl");
+  const [signupStep, setSignupStep] = useState(0);
   const [error, setError]   = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
+
+  function switchMode(nextMode) {
+    setMode(nextMode);
+    setError("");
+    setSuccess("");
+    setSignupStep(0);
+  }
+
+  function validateSignupStep() {
+    if (signupStep === 0) {
+      if (!email.trim()) return "Enter your email.";
+      if (!pass) return "Enter a password.";
+      if (pass.length < 6) return "Password must be at least 6 characters.";
+    }
+    if (signupStep === 1) {
+      const profile = parseProfile({ profileName, weight, heightFt, heightIn, splitId });
+      if (profile.error && profile.error !== "Choose a workout split.") return profile.error;
+    }
+    return "";
+  }
+
+  function nextSignupStep() {
+    const stepError = validateSignupStep();
+    if (stepError) {
+      setError(stepError);
+      return;
+    }
+    setError("");
+    setSignupStep(step => Math.min(step + 1, 2));
+  }
 
   async function handleSubmit() {
     setError(""); setLoading(true);
@@ -297,6 +328,14 @@ function AuthPage({ d, dark, toggleDark }) {
       else setSuccess("Account created! Check your email to confirm, then log in.");
     }
     setLoading(false);
+  }
+
+  function handlePrimary() {
+    if (mode === "signup" && signupStep < 2) {
+      nextSignupStep();
+      return;
+    }
+    handleSubmit();
   }
 
   return (
@@ -324,25 +363,39 @@ function AuthPage({ d, dark, toggleDark }) {
 
         <div style={{ display:"flex", background:d.surface2, borderRadius:10, padding:3, marginBottom:24 }}>
           {["login","signup"].map(m=>(
-            <button key={m} onClick={()=>{setMode(m);setError("");setSuccess("");}} style={{ flex:1, padding:"8px 0", borderRadius:8, border:"none", fontSize:13, fontWeight:600, cursor:"pointer", background:mode===m?d.surface:"none", color:mode===m?d.text:d.text2, boxShadow:mode===m?"0 1px 3px rgba(0,0,0,.1)":"none" }}>
+            <button key={m} onClick={()=>switchMode(m)} style={{ flex:1, padding:"8px 0", borderRadius:8, border:"none", fontSize:13, fontWeight:600, cursor:"pointer", background:mode===m?d.surface:"none", color:mode===m?d.text:d.text2, boxShadow:mode===m?"0 1px 3px rgba(0,0,0,.1)":"none" }}>
               {m==="login"?"Sign In":"Sign Up"}
             </button>
           ))}
         </div>
 
+        {mode==="signup"&&!success&&(
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6, marginBottom:18 }}>
+            {["Account","Profile","Split"].map((step, i)=>(
+              <div key={step} style={{ height:5, borderRadius:20, background:i<=signupStep?d.accent:d.border }} title={step} />
+            ))}
+          </div>
+        )}
+
         {success ? (
           <div style={{ background:d.accentSoft, color:d.accentHover, borderRadius:10, padding:"12px 16px", fontSize:13, marginBottom:16 }}>{success}</div>
         ) : (
           <>
-            <div style={{ marginBottom:12 }}>
-              <label style={hs(d).label}>Email</label>
-              <input style={hs(d).input} type="email" placeholder="you@email.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} autoFocus />
-            </div>
-            <div style={{ marginBottom:20 }}>
-              <label style={hs(d).label}>Password</label>
-              <input style={hs(d).input} type="password" placeholder="********" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} />
-            </div>
-            {mode==="signup"&&(
+            {(mode==="login" || signupStep===0)&&(
+              <>
+                <div style={{ marginBottom:12 }}>
+                  <label style={hs(d).label}>Email</label>
+                  <input style={hs(d).input} type="email" placeholder="you@email.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handlePrimary()} autoFocus />
+                </div>
+                <div style={{ marginBottom:mode==="signup"?8:20 }}>
+                  <label style={hs(d).label}>Password</label>
+                  <input style={hs(d).input} type="password" placeholder="********" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handlePrimary()} />
+                </div>
+                {mode==="signup"&&<p style={{ color:d.text3, fontSize:12, lineHeight:1.45, margin:"0 0 18px" }}>Use an email you can access. Supabase may ask you to confirm it before signing in.</p>}
+              </>
+            )}
+
+            {mode==="signup"&&signupStep===1&&(
               <>
                 <div style={{ marginBottom:12 }}>
                   <label style={hs(d).label}>Profile Name</label>
@@ -362,23 +415,34 @@ function AuthPage({ d, dark, toggleDark }) {
                     <input style={hs(d).input} type="number" min="0" max="11" placeholder="10" value={heightIn} onChange={e=>setHeightIn(e.target.value)} />
                   </div>
                 </div>
-                <div style={{ marginBottom:18 }}>
-                  <label style={hs(d).label}>Workout Split</label>
-                  <div style={{ display:"grid", gap:8 }}>
-                    {[...SPLIT_TEMPLATES, { id:"custom", name:"Custom", desc:"Start blank and build your own after signup." }].map(split=>(
-                      <button key={split.id} onClick={()=>setSplitId(split.id)} style={{ border:`1px solid ${splitId===split.id?d.accent:d.border}`, background:splitId===split.id?d.accentSoft:d.surface, color:d.text, borderRadius:10, padding:"10px 12px", textAlign:"left", cursor:"pointer" }}>
-                        <div style={{ fontSize:13, fontWeight:800, color:splitId===split.id?d.accentHover:d.text }}>{split.name}</div>
-                        <div style={{ fontSize:11, color:d.text3, marginTop:2 }}>{split.desc}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </>
             )}
+
+            {mode==="signup"&&signupStep===2&&(
+              <div style={{ marginBottom:18 }}>
+                <label style={hs(d).label}>Workout Split</label>
+                <div style={{ display:"grid", gap:8 }}>
+                  {[...SPLIT_TEMPLATES, { id:"custom", name:"Custom", desc:"Start blank and build your own after signup." }].map(split=>(
+                    <button key={split.id} onClick={()=>setSplitId(split.id)} style={{ border:`1px solid ${splitId===split.id?d.accent:d.border}`, background:splitId===split.id?d.accentSoft:d.surface, color:d.text, borderRadius:10, padding:"10px 12px", textAlign:"left", cursor:"pointer" }}>
+                      <div style={{ fontSize:13, fontWeight:800, color:splitId===split.id?d.accentHover:d.text }}>{split.name}</div>
+                      <div style={{ fontSize:11, color:d.text3, marginTop:2 }}>{split.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {error && <div style={{ background:d.dangerBg, color:d.danger, borderRadius:8, padding:"10px 14px", fontSize:13, marginBottom:14 }}>{error}</div>}
-            <button onClick={handleSubmit} disabled={loading} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, width:"100%", justifyContent:"center", padding:12, fontSize:14, opacity:loading?.6:1 }}>
-              {loading ? "..." : mode==="login" ? "Sign In" : "Create Account"}
-            </button>
+            <div style={{ display:"flex", gap:10 }}>
+              {mode==="signup"&&signupStep>0&&(
+                <button onClick={()=>{setError("");setSignupStep(step=>step-1);}} disabled={loading} style={{ ...hs(d).btn, background:d.surface2, color:d.text2, border:`1px solid ${d.border}`, justifyContent:"center", padding:12, fontSize:14, flex:0.45 }}>
+                  Back
+                </button>
+              )}
+              <button onClick={handlePrimary} disabled={loading} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, flex:1, justifyContent:"center", padding:12, fontSize:14, opacity:loading?.6:1 }}>
+                {loading ? "..." : mode==="login" ? "Sign In" : signupStep<2 ? "Continue" : "Create Account"}
+              </button>
+            </div>
           </>
         )}
 
