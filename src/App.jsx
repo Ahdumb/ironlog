@@ -357,7 +357,7 @@ function AuthPage({ d, dark, toggleDark }) {
         {mode==="signup"&&(
           <div style={{ padding:34, background:`linear-gradient(145deg, ${d.accentHover}, ${d.accent})`, color:"#fff", display:"flex", flexDirection:"column", justifyContent:"space-between", minHeight:520 }}>
             <div>
-              <div style={{ fontSize:13, fontWeight:800, letterSpacing:".12em", textTransform:"uppercase", opacity:.78, marginBottom:18 }}>IronLog</div>
+              <div style={{ fontSize:13, fontWeight:800, letterSpacing:".12em", textTransform:"uppercase", opacity:.78, marginBottom:18 }}>PeakSet</div>
               <h1 style={{ fontSize:34, lineHeight:1.02, margin:"0 0 14px", letterSpacing:"-1px" }}>Start with your actual plan.</h1>
               <p style={{ margin:0, fontSize:15, lineHeight:1.5, opacity:.88 }}>Build around your body, your split, and the numbers you want to move.</p>
             </div>
@@ -370,7 +370,7 @@ function AuthPage({ d, dark, toggleDark }) {
         )}
         <div style={{ padding:36 }}>
         <div style={{ marginBottom:28, textAlign:mode==="signup"?"left":"center" }}>
-          <div style={{ fontSize:28, fontWeight:700, letterSpacing:"-1px", color:d.text }}>IronLog</div>
+          <div style={{ fontSize:28, fontWeight:700, letterSpacing:"-1px", color:d.text }}>PeakSet</div>
           <div style={{ fontSize:13, color:d.text3, marginTop:4 }}>{mode==="signup"?"Create your training profile":"Train. Track. Progress."}</div>
         </div>
 
@@ -504,7 +504,7 @@ function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
         <div style={{ display:"flex", justifyContent:"space-between", gap:16, alignItems:"flex-start", marginBottom:24 }}>
           <div>
             <div style={{ fontSize:28, fontWeight:800, letterSpacing:"-1px" }}>Finish Your Profile</div>
-            <div style={{ color:d.text3, fontSize:14, marginTop:4 }}>A few details help IronLog start on the right split.</div>
+            <div style={{ color:d.text3, fontSize:14, marginTop:4 }}>A few details help PeakSet start on the right split.</div>
           </div>
           <button onClick={toggleDark} style={hs(d).btnSm}>{dark ? "Light" : "Dark"}</button>
         </div>
@@ -532,7 +532,7 @@ function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
 
         {error && <div style={{ background:d.dangerBg, color:d.danger, borderRadius:8, padding:"10px 14px", fontSize:13, marginBottom:14 }}>{error}</div>}
         <button onClick={saveProfile} disabled={saving} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, width:"100%", justifyContent:"center", padding:13, fontSize:14, opacity:saving?.6:1 }}>
-          {saving ? "Saving..." : "Enter IronLog"}
+          {saving ? "Saving..." : "Enter PeakSet"}
         </button>
         <button onClick={()=>supabase.auth.signOut()} style={{ display:"block", margin:"16px auto 0", background:"none", border:"none", color:d.text3, fontSize:12, cursor:"pointer" }}>Sign out</button>
       </div>
@@ -560,6 +560,7 @@ function MainApp({ session, d, dark, toggleDark }) {
   });
   const [page, setPage]           = useState("dashboard");
   const [logState, setLogState]   = useState({ type:"push", exercises:[], notes:"", date:new Date().toISOString().slice(0,10) });
+  const [workoutStarted, setWorkoutStarted] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
   const [toast, setToast]         = useState(null);
   const toastRef = useRef(null);
@@ -617,7 +618,13 @@ function MainApp({ session, d, dark, toggleDark }) {
     localStorage.setItem("il_custom_routine", JSON.stringify(customRoutine));
   }, [customRoutine]);
 
-  function navigate(p, newLog) { setPage(p); if (newLog) setLogState(newLog); }
+  function navigate(p, newLog) {
+    setPage(p);
+    if (newLog) {
+      setLogState(newLog);
+      setWorkoutStarted(true);
+    }
+  }
 
   async function handleDeleteWorkout(id) {
     try {
@@ -638,6 +645,7 @@ function MainApp({ session, d, dark, toggleDark }) {
       const newId = await saveWorkoutToDb(userId, workout);
       setWorkouts(prev => [{ ...workout, id:newId }, ...prev]);
       setLogState({ type:workoutTypes[0] || "push", exercises:[], notes:"", date:new Date().toISOString().slice(0,10) });
+      setWorkoutStarted(false);
       showToast("Workout saved");
       navigate("history");
     } catch (error) {
@@ -683,7 +691,7 @@ function MainApp({ session, d, dark, toggleDark }) {
 
   const navItems = [
     { id:"dashboard",  label:"Dashboard",        icon:<GridIcon /> },
-    { id:"log",        label:"Log Workout",      icon:<PlusIcon /> },
+    { id:"log",        label:"Start Workout",    icon:<PlusIcon /> },
     { id:"history",    label:"History",          icon:<ClockIcon /> },
     { id:"prs",        label:"Personal Records", icon:<TrendIcon /> },
     { id:"bodyweight", label:"Body Weight",      icon:<ScaleIcon /> },
@@ -692,7 +700,7 @@ function MainApp({ session, d, dark, toggleDark }) {
   ];
   const navButton = (n) => (
     <button key={n.id} onClick={()=>navigate(n.id)} style={{ display:"flex", alignItems:"center", justifyContent:isMobile?"center":"flex-start", gap:isMobile?5:10, padding:isMobile?"8px 10px":"9px 16px", margin:isMobile?0:"1px 8px", borderRadius:8, cursor:"pointer", fontSize:isMobile?11:14, border:"none", background:page===n.id?d.accentSoft:"none", color:page===n.id?d.accentHover:d.text2, minWidth:isMobile?74:"auto", width:isMobile?"auto":"calc(100% - 16px)", textAlign:"left", flexDirection:isMobile?"column":"row", boxShadow:!isMobile&&page===n.id?`inset 3px 0 0 ${d.accent}`:"none" }}>
-      {n.icon}<span>{isMobile ? n.label.replace("Log Workout","Log").replace("Personal Records","PRs").replace("Body Weight","Weight") : n.label}</span>
+      {n.icon}<span>{isMobile ? n.label.replace("Start Workout","Start").replace("Personal Records","PRs").replace("Body Weight","Weight") : n.label}</span>
     </button>
   );
 
@@ -700,7 +708,7 @@ function MainApp({ session, d, dark, toggleDark }) {
     <div style={{ display:"flex", flexDirection:isMobile?"column":"row", height:"100vh", overflow:"hidden", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", fontSize:15, color:d.text, background:d.bg }}>
       <aside style={{ width:220, minWidth:220, background:d.surface, borderRight:`1px solid ${d.border}`, display:isMobile?"none":"flex", flexDirection:"column" }}>
           <div style={{ padding:"22px 20px 14px" }}>
-            <div style={{ fontSize:20, fontWeight:700, letterSpacing:"-0.5px", color:d.text }}>IronLog</div>
+            <div style={{ fontSize:20, fontWeight:700, letterSpacing:"-0.5px", color:d.text }}>PeakSet</div>
           <div style={{ fontSize:11, color:d.text3, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{profile.profile_name || session.user.email}</div>
         </div>
         <div style={{ padding:"4px 12px 6px", fontSize:11, fontWeight:600, color:d.text3, letterSpacing:".08em", textTransform:"uppercase" }}>Menu</div>
@@ -720,7 +728,7 @@ function MainApp({ session, d, dark, toggleDark }) {
         <div style={{ background:d.surface, borderBottom:`1px solid ${d.border}`, padding:"12px 12px 8px", flexShrink:0 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:18, fontWeight:800, color:d.text }}>IronLog</div>
+              <div style={{ fontSize:18, fontWeight:800, color:d.text }}>PeakSet</div>
               <div style={{ fontSize:11, color:d.text3 }}>{profile.profile_name || session.user.email}</div>
             </div>
             <div style={{ display:"flex", gap:6 }}>
@@ -745,11 +753,11 @@ function MainApp({ session, d, dark, toggleDark }) {
         ) : (
           <>
             {page==="dashboard"  && <Dashboard workouts={workouts} prs={prs} bwLog={bwLog} allEx={allEx} navigate={navigate} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
-            {page==="log"        && <LogWorkout logState={logState} setLogState={setLogState} prs={prs} workouts={workouts} allEx={allEx} workoutTypes={workoutTypes} typeLabels={typeLabels} saveCustomEx={handleSaveCustomEx} submit={handleSubmitWorkout} showToast={showToast} isMobile={isMobile} d={d} />}
+            {page==="log"        && <LogWorkout logState={logState} setLogState={setLogState} workoutStarted={workoutStarted} setWorkoutStarted={setWorkoutStarted} prs={prs} workouts={workouts} allEx={allEx} workoutTypes={workoutTypes} typeLabels={typeLabels} saveCustomEx={handleSaveCustomEx} submit={handleSubmitWorkout} showToast={showToast} isMobile={isMobile} d={d} />}
             {page==="history"    && <History workouts={workouts} prs={prs} allEx={allEx} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
             {page==="prs"        && <PRs prs={prs} workouts={workouts} allEx={allEx} d={d} />}
             {page==="bodyweight" && <BodyWeight bwLog={bwLog} saveBw={handleSaveBw} deleteBw={handleDeleteBw} showToast={showToast} isMobile={isMobile} d={d} />}
-            {page==="routines"   && <Routines splitTemplates={SPLIT_TEMPLATES} selectedSplitId={selectedSplitId} setSelectedSplitId={setSelectedSplitId} customRoutine={customRoutine} setCustomRoutine={setCustomRoutine} routine={activeRoutine} prs={prs} allEx={allEx} navigate={navigate} setLogState={setLogState} showToast={showToast} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
+            {page==="routines"   && <Routines splitTemplates={SPLIT_TEMPLATES} selectedSplitId={selectedSplitId} setSelectedSplitId={setSelectedSplitId} customRoutine={customRoutine} setCustomRoutine={setCustomRoutine} routine={activeRoutine} prs={prs} allEx={allEx} navigate={navigate} showToast={showToast} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
             {page==="profile"    && <Profile profile={profile} email={session.user.email} prs={prs} bwLog={bwLog} allEx={allEx} selectedSplitId={selectedSplitId} isMobile={isMobile} d={d} />}
           </>
         )}
@@ -788,7 +796,7 @@ function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeL
           <h3 style={{...hs(d).h3,marginBottom:0}}>Recent Workouts</h3>
           <button style={hs(d).btnSm} onClick={()=>navigate("history")}>View all</button>
         </div>
-        {recent.length ? recent.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={allEx} onDelete={deleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d}/>) : <Empty icon="" title="No workouts yet" desc="Head to Log Workout to get started" d={d}/>}
+        {recent.length ? recent.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={allEx} onDelete={deleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d}/>) : <Empty icon="" title="No workouts yet" desc="Start a workout to get moving" d={d}/>}
       </div>
     </div>
   );
@@ -1010,7 +1018,7 @@ function RestTimer({ d }) {
       const timer = setTimeout(()=>{
         setRunning(false);
         if ("Notification" in window && Notification.permission === "granted") {
-          new Notification("IronLog", { body:"Rest time up" });
+          new Notification("PeakSet", { body:"Rest time up" });
         }
       }, 0);
       return ()=>clearTimeout(timer);
@@ -1048,8 +1056,8 @@ function RestTimer({ d }) {
   );
 }
 
-// LOG WORKOUT
-function LogWorkout({ logState, setLogState, prs, workouts, allEx, workoutTypes, typeLabels, saveCustomEx, submit, showToast, isMobile, d }) {
+// START WORKOUT
+function LogWorkout({ logState, setLogState, workoutStarted, setWorkoutStarted, prs, workouts, allEx, workoutTypes, typeLabels, saveCustomEx, submit, showToast, isMobile, d }) {
   const [showExModal, setShowExModal]   = useState(false);
   const [showCustModal, setShowCustModal] = useState(false);
   const [showTimer, setShowTimer] = useState(() => localStorage.getItem("il_show_timer") === "true");
@@ -1093,18 +1101,31 @@ function LogWorkout({ logState, setLogState, prs, workouts, allEx, workoutTypes,
     localStorage.setItem("il_show_timer", String(next));
   }
 
+  function startWorkout() {
+    setWorkoutStarted(true);
+    showToast("Workout started");
+  }
+
+  function cancelWorkout() {
+    setLogState({ type:workoutTypes[0] || "push", exercises:[], notes:"", date:new Date().toISOString().slice(0,10) });
+    setWorkoutStarted(false);
+  }
+
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, marginBottom:showTimer?12:20 }}>
         <div>
-          <h1 style={hs(d).h1}>Log Workout</h1>
-          <p style={{...hs(d).sub,marginBottom:0}}>Record today's session</p>
+          <h1 style={hs(d).h1}>Start Workout</h1>
+          <p style={{...hs(d).sub,marginBottom:0}}>{workoutStarted ? "Add exercises as you go" : "Set up the session, then start lifting"}</p>
         </div>
-        <button style={{...hs(d).btnSm, background:showTimer?d.accentSoft:d.surface2, color:showTimer?d.accentHover:d.text2}} onClick={toggleTimer}>{showTimer ? "Hide Timer" : "Timer"}</button>
+        <div style={{ display:"flex", gap:8 }}>
+          {workoutStarted&&<button style={{...hs(d).btnSm, background:d.surface2, color:d.text2}} onClick={cancelWorkout}>Cancel</button>}
+          <button style={{...hs(d).btnSm, background:showTimer?d.accentSoft:d.surface2, color:showTimer?d.accentHover:d.text2}} onClick={toggleTimer}>{showTimer ? "Hide Timer" : "Timer"}</button>
+        </div>
       </div>
       {showTimer&&<RestTimer d={d}/>}
       <div style={{...hs(d).card,marginBottom:16}}>
-        <h3 style={hs(d).h3}>Workout Type</h3>
+        <h3 style={hs(d).h3}>{workoutStarted ? "Current Workout" : "Workout Setup"}</h3>
         <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
           {workoutTypes.map(t=>(
             <button key={t} onClick={()=>setLogState({...logState,type:t})} style={{...hs(d).btn,...(logState.type===t?{background:d.accent,color:d.accentText}:{background:d.surface2,color:d.text,border:`1px solid ${d.border}`})}}>{typeLabel(t, typeLabels)}</button>
@@ -1114,55 +1135,64 @@ function LogWorkout({ logState, setLogState, prs, workouts, allEx, workoutTypes,
           <div><label style={hs(d).label}>Date</label><input style={hs(d).input} type="date" value={logState.date} onChange={e=>setLogState({...logState,date:e.target.value})}/></div>
           <div><label style={hs(d).label}>Session Notes</label><input style={hs(d).input} type="text" placeholder="How did it feel?" value={logState.notes} onChange={e=>setLogState({...logState,notes:e.target.value})}/></div>
         </div>
+        {!workoutStarted&&(
+          <button style={{...hs(d).btn,background:d.accent,color:d.accentText,width:"100%",justifyContent:"center",padding:14,fontSize:15,marginTop:16}} onClick={startWorkout}>
+            Start Workout
+          </button>
+        )}
       </div>
-      <div style={{...hs(d).card,marginBottom:16}}>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-          <h3 style={{...hs(d).h3,marginBottom:0}}>Exercises</h3>
-          <button style={{...hs(d).btn,background:d.accent,color:d.accentText,padding:"6px 12px",fontSize:13}} onClick={()=>setShowExModal(true)}>+ Add Exercise</button>
-        </div>
-        {logState.exercises.length===0
-          ? <Empty icon="" title="No exercises added" desc='Click "+ Add Exercise" to start' d={d}/>
-          : logState.exercises.map((ex,i)=>{
-            const exData=allEx.find(e=>e.id===ex.id);
-            const pr=prs[ex.id]; const suggest=getOverloadSuggestion(ex.id,workouts);
-            return (
-              <div key={ex.id} style={{...hs(d).card,marginBottom:10,background:d.surface2}}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-                  <div style={{ display:"flex", flexWrap:"wrap", alignItems:"center", gap:6 }}>
-                    <span style={{ fontWeight:600, fontSize:14, color:d.text }}>{exData?.name||ex.id}</span>
-                    {exData&&<span style={{ fontSize:11, color:d.text3 }}>{exData.muscle}</span>}
-                    {pr&&<span style={{ fontSize:11, color:d.text3 }}>PR: {pr.weight}x{pr.reps}</span>}
-                    {suggest&&<span style={{ fontSize:11, color:d.warning, background:d.warningBg, borderRadius:4, padding:"1px 5px" }}>{suggest}lbs</span>}
+      {workoutStarted&&(
+        <>
+          <div style={{...hs(d).card,marginBottom:16}}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+              <h3 style={{...hs(d).h3,marginBottom:0}}>Exercises</h3>
+              <button style={{...hs(d).btn,background:d.accent,color:d.accentText,padding:"6px 12px",fontSize:13}} onClick={()=>setShowExModal(true)}>+ Add Exercise</button>
+            </div>
+            {logState.exercises.length===0
+              ? <Empty icon="" title="No exercises yet" desc="Add your first exercise when you begin it" d={d}/>
+              : logState.exercises.map((ex,i)=>{
+                const exData=allEx.find(e=>e.id===ex.id);
+                const pr=prs[ex.id]; const suggest=getOverloadSuggestion(ex.id,workouts);
+                return (
+                  <div key={ex.id} style={{...hs(d).card,marginBottom:10,background:d.surface2}}>
+                    <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                      <div style={{ display:"flex", flexWrap:"wrap", alignItems:"center", gap:6 }}>
+                        <span style={{ fontWeight:600, fontSize:14, color:d.text }}>{exData?.name||ex.id}</span>
+                        {exData&&<span style={{ fontSize:11, color:d.text3 }}>{exData.muscle}</span>}
+                        {pr&&<span style={{ fontSize:11, color:d.text3 }}>PR: {pr.weight}x{pr.reps}</span>}
+                        {suggest&&<span style={{ fontSize:11, color:d.warning, background:d.warningBg, borderRadius:4, padding:"1px 5px" }}>{suggest}lbs</span>}
+                      </div>
+                      <div style={{ display:"flex", gap:4 }}>
+                        <button style={{ background:"none", border:"none", color:d.text2, padding:"4px 8px", borderRadius:6, cursor:"pointer", fontSize:13 }} onClick={()=>addSet(i)}>+ Set</button>
+                        <button style={{ background:"none", border:"none", color:d.danger, padding:"4px 8px", borderRadius:6, cursor:"pointer", fontSize:13 }} onClick={()=>removeEx(i)}>x</button>
+                      </div>
+                    </div>
+                    <div style={{ display:"grid", gridTemplateColumns:isMobile?"28px 1fr 1fr 64px 24px":"28px 1fr 1fr 72px 1fr 24px", gap:6, marginBottom:4 }}>
+                      {(isMobile?["#","lbs","Reps","RPE",""]:["#","lbs","Reps","RPE","Note",""]).map((h,i)=><div key={i} style={{ fontSize:10, color:d.text3, fontWeight:600 }}>{h}</div>)}
+                    </div>
+                    {ex.sets.map((set,si)=>(
+                      <div key={si} style={{ display:"grid", gridTemplateColumns:isMobile?"28px 1fr 1fr 64px 24px":"28px 1fr 1fr 72px 1fr 24px", gap:6, marginBottom:isMobile?9:5, alignItems:"center" }}>
+                        <div style={{ fontSize:11, fontWeight:700, color:d.text3, textAlign:"center", background:d.border, borderRadius:5, padding:"4px 0" }}>{si+1}</div>
+                        <input style={hs(d).input} type="number" value={set.weight||""} placeholder="lbs" onChange={e=>updateSet(i,si,"weight",e.target.value)}/>
+                        <input style={hs(d).input} type="number" value={set.reps||""} placeholder="reps" onChange={e=>updateSet(i,si,"reps",e.target.value)}/>
+                        <select style={hs(d).input} value={set.rpe} onChange={e=>updateSet(i,si,"rpe",e.target.value)}>
+                          <option value="">-</option>
+                          {[6,6.5,7,7.5,8,8.5,9,9.5,10].map(r=><option key={r} value={r}>{r}</option>)}
+                        </select>
+                        {!isMobile&&<input style={hs(d).input} type="text" value={set.note} placeholder="note..." onChange={e=>updateSet(i,si,"note",e.target.value)}/>}
+                        <button style={{ background:"none", border:"none", color:d.text3, cursor:"pointer" }} onClick={()=>removeSet(i,si)}>x</button>
+                        {isMobile&&<input style={{...hs(d).input,gridColumn:"2 / -1"}} type="text" value={set.note} placeholder="note..." onChange={e=>updateSet(i,si,"note",e.target.value)}/>}
+                      </div>
+                    ))}
                   </div>
-                  <div style={{ display:"flex", gap:4 }}>
-                    <button style={{ background:"none", border:"none", color:d.text2, padding:"4px 8px", borderRadius:6, cursor:"pointer", fontSize:13 }} onClick={()=>addSet(i)}>+ Set</button>
-                    <button style={{ background:"none", border:"none", color:d.danger, padding:"4px 8px", borderRadius:6, cursor:"pointer", fontSize:13 }} onClick={()=>removeEx(i)}>x</button>
-                  </div>
-                </div>
-                <div style={{ display:"grid", gridTemplateColumns:isMobile?"28px 1fr 1fr 64px 24px":"28px 1fr 1fr 72px 1fr 24px", gap:6, marginBottom:4 }}>
-                  {(isMobile?["#","lbs","Reps","RPE",""]:["#","lbs","Reps","RPE","Note",""]).map((h,i)=><div key={i} style={{ fontSize:10, color:d.text3, fontWeight:600 }}>{h}</div>)}
-                </div>
-                {ex.sets.map((set,si)=>(
-                  <div key={si} style={{ display:"grid", gridTemplateColumns:isMobile?"28px 1fr 1fr 64px 24px":"28px 1fr 1fr 72px 1fr 24px", gap:6, marginBottom:isMobile?9:5, alignItems:"center" }}>
-                    <div style={{ fontSize:11, fontWeight:700, color:d.text3, textAlign:"center", background:d.border, borderRadius:5, padding:"4px 0" }}>{si+1}</div>
-                    <input style={hs(d).input} type="number" value={set.weight||""} placeholder="lbs" onChange={e=>updateSet(i,si,"weight",e.target.value)}/>
-                    <input style={hs(d).input} type="number" value={set.reps||""} placeholder="reps" onChange={e=>updateSet(i,si,"reps",e.target.value)}/>
-                    <select style={hs(d).input} value={set.rpe} onChange={e=>updateSet(i,si,"rpe",e.target.value)}>
-                      <option value="">-</option>
-                      {[6,6.5,7,7.5,8,8.5,9,9.5,10].map(r=><option key={r} value={r}>{r}</option>)}
-                    </select>
-                    {!isMobile&&<input style={hs(d).input} type="text" value={set.note} placeholder="note..." onChange={e=>updateSet(i,si,"note",e.target.value)}/>}
-                    <button style={{ background:"none", border:"none", color:d.text3, cursor:"pointer" }} onClick={()=>removeSet(i,si)}>x</button>
-                    {isMobile&&<input style={{...hs(d).input,gridColumn:"2 / -1"}} type="text" value={set.note} placeholder="note..." onChange={e=>updateSet(i,si,"note",e.target.value)}/>}
-                  </div>
-                ))}
-              </div>
-            );
-          })
-        }
-      </div>
-      {logState.exercises.length>0&&(
-        <button style={{...hs(d).btn,background:d.accent,color:d.accentText,width:"100%",justifyContent:"center",padding:14,fontSize:15}} onClick={submit}>Save Workout</button>
+                );
+              })
+            }
+          </div>
+          {logState.exercises.length>0&&(
+            <button style={{...hs(d).btn,background:d.accent,color:d.accentText,width:"100%",justifyContent:"center",padding:14,fontSize:15}} onClick={submit}>Finish Workout</button>
+          )}
+        </>
       )}
 
       {showExModal&&(
@@ -1228,7 +1258,7 @@ function History({ workouts, prs, allEx, deleteWorkout, typeLabels, isMobile, d 
     <div>
       <h1 style={hs(d).h1}>History</h1>
       <p style={hs(d).sub}>{sorted.length} sessions logged</p>
-      {sorted.length===0?<Empty icon="" title="No workouts yet" desc="Head to Log Workout to get started" d={d}/>:sorted.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={allEx} onDelete={deleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d}/>)}
+      {sorted.length===0?<Empty icon="" title="No workouts yet" desc="Start a workout to get moving" d={d}/>:sorted.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={allEx} onDelete={deleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d}/>)}
     </div>
   );
 }
@@ -1332,14 +1362,14 @@ function BodyWeight({ bwLog, saveBw, deleteBw, showToast, isMobile, d }) {
 }
 
 // ROUTINES
-function Routines({ splitTemplates, selectedSplitId, setSelectedSplitId, customRoutine, setCustomRoutine, routine, prs, allEx, navigate, setLogState, showToast, typeLabels, isMobile, d }) {
+function Routines({ splitTemplates, selectedSplitId, setSelectedSplitId, customRoutine, setCustomRoutine, routine, prs, allEx, navigate, showToast, typeLabels, isMobile, d }) {
   const selectedTemplate = splitTemplates.find(s => s.id === selectedSplitId);
   function startDay(di) {
     const day=routine[di];
     if (day.type === "rest") return;
-    setLogState({ type:day.type, notes:"", date:new Date().toISOString().slice(0,10), exercises:day.exercises.map(id=>{ const pr=prs[id]; return {id,sets:[{weight:pr?.weight||0,reps:pr?.reps||0,rpe:"",note:""}]}; }) });
-    navigate("log");
-    showToast(`${day.day} ${day.label || typeLabel(day.type, typeLabels)} loaded!`);
+    const nextLog = { type:day.type, notes:"", date:new Date().toISOString().slice(0,10), exercises:day.exercises.map(id=>{ const pr=prs[id]; return {id,sets:[{weight:pr?.weight||0,reps:pr?.reps||0,rpe:"",note:""}]}; }) };
+    navigate("log", nextLog);
+    showToast(`${day.day} ${day.label || typeLabel(day.type, typeLabels)} started`);
   }
 
   function copyCurrentToCustom() {
