@@ -125,6 +125,10 @@ function toTypeId(label) {
 function typeLabel(type, labels = {}) {
   return labels[type] || WORKOUT_TYPE_META[type]?.label || cap(String(type || "rest").replace(/_/g, " "));
 }
+function hasCompleteProfile(user) {
+  const meta = user?.user_metadata || {};
+  return Boolean(meta.weight_lbs && meta.height_in && meta.split_id);
+}
 function defaultCustomRoutine() {
   return WEEK_DAYS.map(day => ({ day, type:"rest", label:"Rest", exercises:[] }));
 }
@@ -210,14 +214,42 @@ export default function App() {
 
   if (!session) return <AuthPage d={d} dark={dark} toggleDark={()=>{ const v=!dark; setDark(v); localStorage.setItem("il_dark",v); }} />;
 
+  if (!hasCompleteProfile(session.user)) {
+    return <ProfileSetup session={session} setSession={setSession} d={d} dark={dark} toggleDark={()=>{ const v=!dark; setDark(v); localStorage.setItem("il_dark",v); }} />;
+  }
+
   return <MainApp session={session} d={d} dark={dark} toggleDark={()=>{ const v=!dark; setDark(v); localStorage.setItem("il_dark",v); }} />;
 }
 
 // AUTH PAGE
+function parseProfile({ weight, heightFt, heightIn, splitId }) {
+  const weightLbs = Number.parseFloat(weight);
+  const feet = Number.parseInt(heightFt, 10);
+  const inches = Number.parseInt(heightIn || "0", 10);
+
+  if (!Number.isFinite(weightLbs) || weightLbs <= 0) return { error:"Enter your weight." };
+  if (!Number.isFinite(feet) || feet <= 0) return { error:"Enter your height in feet." };
+  if (!Number.isFinite(inches) || inches < 0 || inches > 11) return { error:"Height inches must be 0 through 11." };
+  if (!splitId) return { error:"Choose a workout split." };
+
+  return {
+    data:{
+      weight_lbs:Math.round(weightLbs * 10) / 10,
+      height_in:(feet * 12) + inches,
+      split_id:splitId,
+      onboarding_complete:true,
+    },
+  };
+}
+
 function AuthPage({ d, dark, toggleDark }) {
   const [mode, setMode]     = useState("login");
   const [email, setEmail]   = useState("");
   const [pass, setPass]     = useState("");
+  const [weight, setWeight] = useState("");
+  const [heightFt, setHeightFt] = useState("");
+  const [heightIn, setHeightIn] = useState("");
+  const [splitId, setSplitId] = useState("ppl");
   const [error, setError]   = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
@@ -228,7 +260,17 @@ function AuthPage({ d, dark, toggleDark }) {
       const { error } = await supabase.auth.signInWithPassword({ email, password:pass });
       if (error) setError(error.message);
     } else {
-      const { error } = await supabase.auth.signUp({ email, password:pass });
+      const profile = parseProfile({ weight, heightFt, heightIn, splitId });
+      if (profile.error) {
+        setError(profile.error);
+        setLoading(false);
+        return;
+      }
+      const { error } = await supabase.auth.signUp({
+        email,
+        password:pass,
+        options:{ data:profile.data },
+      });
       if (error) setError(error.message);
       else setSuccess("Account created! Check your email to confirm, then log in.");
     }
@@ -236,11 +278,26 @@ function AuthPage({ d, dark, toggleDark }) {
   }
 
   return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:d.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
-      <div style={{ width:380, padding:36, background:d.surface, border:`1px solid ${d.border}`, borderRadius:20 }}>
-        <div style={{ marginBottom:28, textAlign:"center" }}>
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100vh", background:d.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", padding:24 }}>
+      <div style={{ width:mode==="signup"?820:400, maxWidth:"100%", display:"grid", gridTemplateColumns:mode==="signup"?"repeat(auto-fit,minmax(320px,1fr))":"1fr", overflow:"hidden", background:d.surface, border:`1px solid ${d.border}`, borderRadius:22, boxShadow:"0 24px 80px rgba(0,0,0,.14)" }}>
+        {mode==="signup"&&(
+          <div style={{ padding:34, background:`linear-gradient(145deg, ${d.accentHover}, ${d.accent})`, color:"#fff", display:"flex", flexDirection:"column", justifyContent:"space-between", minHeight:520 }}>
+            <div>
+              <div style={{ fontSize:13, fontWeight:800, letterSpacing:".12em", textTransform:"uppercase", opacity:.78, marginBottom:18 }}>IronLog</div>
+              <h1 style={{ fontSize:34, lineHeight:1.02, margin:"0 0 14px", letterSpacing:"-1px" }}>Start with your actual plan.</h1>
+              <p style={{ margin:0, fontSize:15, lineHeight:1.5, opacity:.88 }}>Build around your body, your split, and the numbers you want to move.</p>
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+              {["Private log","PR tracking","Flexible splits","Progress charts"].map(item=>(
+                <div key={item} style={{ border:"1px solid rgba(255,255,255,.26)", borderRadius:10, padding:"10px 12px", fontSize:12, fontWeight:700, background:"rgba(255,255,255,.10)" }}>{item}</div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div style={{ padding:36 }}>
+        <div style={{ marginBottom:28, textAlign:mode==="signup"?"left":"center" }}>
           <div style={{ fontSize:28, fontWeight:700, letterSpacing:"-1px", color:d.text }}>IronLog</div>
-          <div style={{ fontSize:13, color:d.text3, marginTop:4 }}>Train. Track. Progress.</div>
+          <div style={{ fontSize:13, color:d.text3, marginTop:4 }}>{mode==="signup"?"Create your training profile":"Train. Track. Progress."}</div>
         </div>
 
         <div style={{ display:"flex", background:d.surface2, borderRadius:10, padding:3, marginBottom:24 }}>
@@ -263,6 +320,35 @@ function AuthPage({ d, dark, toggleDark }) {
               <label style={hs(d).label}>Password</label>
               <input style={hs(d).input} type="password" placeholder="********" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} />
             </div>
+            {mode==="signup"&&(
+              <>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:12 }}>
+                  <div>
+                    <label style={hs(d).label}>Weight</label>
+                    <input style={hs(d).input} type="number" min="1" placeholder="185" value={weight} onChange={e=>setWeight(e.target.value)} />
+                  </div>
+                  <div>
+                    <label style={hs(d).label}>Height ft</label>
+                    <input style={hs(d).input} type="number" min="1" placeholder="5" value={heightFt} onChange={e=>setHeightFt(e.target.value)} />
+                  </div>
+                  <div>
+                    <label style={hs(d).label}>Height in</label>
+                    <input style={hs(d).input} type="number" min="0" max="11" placeholder="10" value={heightIn} onChange={e=>setHeightIn(e.target.value)} />
+                  </div>
+                </div>
+                <div style={{ marginBottom:18 }}>
+                  <label style={hs(d).label}>Workout Split</label>
+                  <div style={{ display:"grid", gap:8 }}>
+                    {[...SPLIT_TEMPLATES, { id:"custom", name:"Custom", desc:"Start blank and build your own after signup." }].map(split=>(
+                      <button key={split.id} onClick={()=>setSplitId(split.id)} style={{ border:`1px solid ${splitId===split.id?d.accent:d.border}`, background:splitId===split.id?d.accentSoft:d.surface, color:d.text, borderRadius:10, padding:"10px 12px", textAlign:"left", cursor:"pointer" }}>
+                        <div style={{ fontSize:13, fontWeight:800, color:splitId===split.id?d.accentHover:d.text }}>{split.name}</div>
+                        <div style={{ fontSize:11, color:d.text3, marginTop:2 }}>{split.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
             {error && <div style={{ background:d.dangerBg, color:d.danger, borderRadius:8, padding:"10px 14px", fontSize:13, marginBottom:14 }}>{error}</div>}
             <button onClick={handleSubmit} disabled={loading} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, width:"100%", justifyContent:"center", padding:12, fontSize:14, opacity:loading?.6:1 }}>
               {loading ? "..." : mode==="login" ? "Sign In" : "Create Account"}
@@ -273,6 +359,73 @@ function AuthPage({ d, dark, toggleDark }) {
         <button onClick={toggleDark} style={{ display:"block", margin:"20px auto 0", background:"none", border:"none", color:d.text3, fontSize:12, cursor:"pointer" }}>
           {dark ? "Light mode" : "Dark mode"}
         </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
+  const meta = session.user.user_metadata || {};
+  const [weight, setWeight] = useState(meta.weight_lbs || "");
+  const [heightFt, setHeightFt] = useState(meta.height_in ? Math.floor(meta.height_in / 12) : "");
+  const [heightIn, setHeightIn] = useState(meta.height_in ? meta.height_in % 12 : "");
+  const [splitId, setSplitId] = useState(meta.split_id || "ppl");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function saveProfile() {
+    setError("");
+    const profile = parseProfile({ weight, heightFt, heightIn, splitId });
+    if (profile.error) {
+      setError(profile.error);
+      return;
+    }
+
+    setSaving(true);
+    const { data, error } = await supabase.auth.updateUser({ data:profile.data });
+    setSaving(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    localStorage.setItem("il_split", splitId);
+    setSession({ ...session, user:data.user });
+  }
+
+  return (
+    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:d.bg, color:d.text, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", padding:24 }}>
+      <div style={{ width:720, background:d.surface, border:`1px solid ${d.border}`, borderRadius:22, padding:34, boxShadow:"0 24px 80px rgba(0,0,0,.14)" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", gap:16, alignItems:"flex-start", marginBottom:24 }}>
+          <div>
+            <div style={{ fontSize:28, fontWeight:800, letterSpacing:"-1px" }}>Finish Your Profile</div>
+            <div style={{ color:d.text3, fontSize:14, marginTop:4 }}>A few details help IronLog start on the right split.</div>
+          </div>
+          <button onClick={toggleDark} style={hs(d).btnSm}>{dark ? "Light" : "Dark"}</button>
+        </div>
+
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:16 }}>
+          <div><label style={hs(d).label}>Weight</label><input style={hs(d).input} type="number" value={weight} placeholder="185" onChange={e=>setWeight(e.target.value)} /></div>
+          <div><label style={hs(d).label}>Height ft</label><input style={hs(d).input} type="number" value={heightFt} placeholder="5" onChange={e=>setHeightFt(e.target.value)} /></div>
+          <div><label style={hs(d).label}>Height in</label><input style={hs(d).input} type="number" value={heightIn} placeholder="10" onChange={e=>setHeightIn(e.target.value)} /></div>
+        </div>
+
+        <label style={hs(d).label}>Workout Split</label>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:10, marginBottom:16 }}>
+          {[...SPLIT_TEMPLATES, { id:"custom", name:"Custom", desc:"Start blank and build your own." }].map(split=>(
+            <button key={split.id} onClick={()=>setSplitId(split.id)} style={{ border:`1px solid ${splitId===split.id?d.accent:d.border}`, background:splitId===split.id?d.accentSoft:d.surface, color:d.text, borderRadius:10, padding:"12px 14px", textAlign:"left", cursor:"pointer" }}>
+              <div style={{ fontWeight:800, color:splitId===split.id?d.accentHover:d.text }}>{split.name}</div>
+              <div style={{ fontSize:12, color:d.text3, marginTop:3, lineHeight:1.35 }}>{split.desc}</div>
+            </button>
+          ))}
+        </div>
+
+        {error && <div style={{ background:d.dangerBg, color:d.danger, borderRadius:8, padding:"10px 14px", fontSize:13, marginBottom:14 }}>{error}</div>}
+        <button onClick={saveProfile} disabled={saving} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, width:"100%", justifyContent:"center", padding:13, fontSize:14, opacity:saving?.6:1 }}>
+          {saving ? "Saving..." : "Enter IronLog"}
+        </button>
+        <button onClick={()=>supabase.auth.signOut()} style={{ display:"block", margin:"16px auto 0", background:"none", border:"none", color:d.text3, fontSize:12, cursor:"pointer" }}>Sign out</button>
       </div>
     </div>
   );
@@ -281,10 +434,12 @@ function AuthPage({ d, dark, toggleDark }) {
 // MAIN APP
 function MainApp({ session, d, dark, toggleDark }) {
   const userId = session.user.id;
+  const profileSplit = session.user.user_metadata?.split_id;
+  const profileWeight = session.user.user_metadata?.weight_lbs;
   const [workouts, setWorkouts]   = useState([]);
   const [bwLog, setBwLog]         = useState([]);
   const [customEx, setCustomEx]   = useState([]);
-  const [selectedSplitId, setSelectedSplitId] = useState(() => localStorage.getItem("il_split") || "ppl");
+  const [selectedSplitId, setSelectedSplitId] = useState(() => profileSplit || localStorage.getItem("il_split") || "ppl");
   const [customRoutine, setCustomRoutine] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem("il_custom_routine")) || defaultCustomRoutine();
@@ -327,7 +482,13 @@ function MainApp({ session, d, dark, toggleDark }) {
       setDataLoading(true);
       try {
         const [w, bw, ce] = await Promise.all([fetchWorkouts(userId), fetchBodyWeight(userId), fetchCustomExercises(userId)]);
-        setWorkouts(w); setBwLog(bw); setCustomEx(ce);
+        let bodyWeight = bw;
+        if (!bodyWeight.length && profileWeight) {
+          const today = new Date(new Date().toISOString().slice(0,10)+"T12:00:00").getTime();
+          const row = await saveBodyWeight(userId, today, Number(profileWeight));
+          bodyWeight = [{ id:row.id, date:today, weight:row.weight }];
+        }
+        setWorkouts(w); setBwLog(bodyWeight); setCustomEx(ce);
       } catch (error) {
         showToast(error.message || "Error loading data");
       } finally {
@@ -335,7 +496,7 @@ function MainApp({ session, d, dark, toggleDark }) {
       }
     }
     loadAll();
-  }, [userId, showToast]);
+  }, [userId, profileWeight, showToast]);
 
   useEffect(() => {
     localStorage.setItem("il_split", selectedSplitId);
