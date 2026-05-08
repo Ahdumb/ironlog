@@ -137,6 +137,16 @@ function splitName(splitId) {
   if (splitId === "custom") return "Custom";
   return SPLIT_TEMPLATES.find(s => s.id === splitId)?.name || "Custom";
 }
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" ? window.innerWidth < 760 : false);
+  useEffect(() => {
+    function update() { setIsMobile(window.innerWidth < 760); }
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+  return isMobile;
+}
 function defaultCustomRoutine() {
   return WEEK_DAYS.map(day => ({ day, type:"rest", label:"Rest", exercises:[] }));
 }
@@ -455,6 +465,7 @@ function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
 
 // MAIN APP
 function MainApp({ session, d, dark, toggleDark }) {
+  const isMobile = useIsMobile();
   const userId = session.user.id;
   const profile = session.user.user_metadata || {};
   const profileSplit = profile.split_id;
@@ -602,20 +613,21 @@ function MainApp({ session, d, dark, toggleDark }) {
     { id:"routines",   label:"Routines",         icon:<ListIcon /> },
     { id:"profile",    label:"Profile",          icon:<UserIcon /> },
   ];
+  const navButton = (n) => (
+    <button key={n.id} onClick={()=>navigate(n.id)} style={{ display:"flex", alignItems:"center", justifyContent:isMobile?"center":"flex-start", gap:isMobile?5:10, padding:isMobile?"8px 10px":"9px 16px", margin:isMobile?0:"1px 8px", borderRadius:8, cursor:"pointer", fontSize:isMobile?11:14, border:"none", background:page===n.id?d.accentSoft:"none", color:page===n.id?d.accentHover:d.text2, minWidth:isMobile?74:"auto", width:isMobile?"auto":"calc(100% - 16px)", textAlign:"left", flexDirection:isMobile?"column":"row", boxShadow:!isMobile&&page===n.id?`inset 3px 0 0 ${d.accent}`:"none" }}>
+      {n.icon}<span>{isMobile ? n.label.replace("Log Workout","Log").replace("Personal Records","PRs").replace("Body Weight","Weight") : n.label}</span>
+    </button>
+  );
 
   return (
-    <div style={{ display:"flex", height:"100vh", overflow:"hidden", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", fontSize:15, color:d.text, background:d.bg }}>
-      <aside style={{ width:220, minWidth:220, background:d.surface, borderRight:`1px solid ${d.border}`, display:"flex", flexDirection:"column" }}>
+    <div style={{ display:"flex", flexDirection:isMobile?"column":"row", height:"100vh", overflow:"hidden", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", fontSize:15, color:d.text, background:d.bg }}>
+      <aside style={{ width:220, minWidth:220, background:d.surface, borderRight:`1px solid ${d.border}`, display:isMobile?"none":"flex", flexDirection:"column" }}>
           <div style={{ padding:"22px 20px 14px" }}>
             <div style={{ fontSize:20, fontWeight:700, letterSpacing:"-0.5px", color:d.text }}>IronLog</div>
           <div style={{ fontSize:11, color:d.text3, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{profile.profile_name || session.user.email}</div>
         </div>
         <div style={{ padding:"4px 12px 6px", fontSize:11, fontWeight:600, color:d.text3, letterSpacing:".08em", textTransform:"uppercase" }}>Menu</div>
-        {navItems.map(n => (
-          <button key={n.id} onClick={()=>navigate(n.id)} style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 16px", margin:"1px 8px", borderRadius:8, cursor:"pointer", fontSize:14, border:"none", background:page===n.id?d.accentSoft:"none", color:page===n.id?d.accentHover:d.text2, width:"calc(100% - 16px)", textAlign:"left", boxShadow:page===n.id?`inset 3px 0 0 ${d.accent}`:"none" }}>
-            {n.icon}{n.label}
-          </button>
-        ))}
+        {navItems.map(navButton)}
         <div style={{ marginTop:"auto", padding:12, borderTop:`1px solid ${d.border}`, display:"flex", flexDirection:"column", gap:8 }}>
           <div style={{ background:d.greenBg, color:d.green, fontSize:12, fontWeight:600, padding:"8px 12px", borderRadius:8, display:"flex", alignItems:"center", gap:6 }}><strong>{streak}</strong> day streak</div>
           <button onClick={toggleDark} style={{ background:d.surface2, border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 12px", fontSize:12, fontWeight:600, cursor:"pointer", color:d.text2 }}>
@@ -627,7 +639,25 @@ function MainApp({ session, d, dark, toggleDark }) {
         </div>
       </aside>
 
-      <main style={{ flex:1, overflowY:"auto", padding:32 }}>
+      {isMobile&&(
+        <div style={{ background:d.surface, borderBottom:`1px solid ${d.border}`, padding:"12px 12px 8px", flexShrink:0 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+            <div>
+              <div style={{ fontSize:18, fontWeight:800, color:d.text }}>IronLog</div>
+              <div style={{ fontSize:11, color:d.text3 }}>{profile.profile_name || session.user.email}</div>
+            </div>
+            <div style={{ display:"flex", gap:6 }}>
+              <button onClick={toggleDark} style={hs(d).btnSm}>{dark ? "Light" : "Dark"}</button>
+              <button onClick={handleSignOut} style={hs(d).btnSm}>Out</button>
+            </div>
+          </div>
+          <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:2 }}>
+            {navItems.map(navButton)}
+          </div>
+        </div>
+      )}
+
+      <main style={{ flex:1, overflowY:"auto", padding:isMobile?16:32 }}>
         {dataLoading ? (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", color:d.text3 }}>
             <div>
@@ -637,24 +667,24 @@ function MainApp({ session, d, dark, toggleDark }) {
           </div>
         ) : (
           <>
-            {page==="dashboard"  && <Dashboard workouts={workouts} prs={prs} bwLog={bwLog} allEx={allEx} navigate={navigate} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} d={d} />}
-            {page==="log"        && <LogWorkout logState={logState} setLogState={setLogState} prs={prs} workouts={workouts} allEx={allEx} workoutTypes={workoutTypes} typeLabels={typeLabels} saveCustomEx={handleSaveCustomEx} submit={handleSubmitWorkout} showToast={showToast} d={d} />}
-            {page==="history"    && <History workouts={workouts} prs={prs} allEx={allEx} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} d={d} />}
+            {page==="dashboard"  && <Dashboard workouts={workouts} prs={prs} bwLog={bwLog} allEx={allEx} navigate={navigate} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
+            {page==="log"        && <LogWorkout logState={logState} setLogState={setLogState} prs={prs} workouts={workouts} allEx={allEx} workoutTypes={workoutTypes} typeLabels={typeLabels} saveCustomEx={handleSaveCustomEx} submit={handleSubmitWorkout} showToast={showToast} isMobile={isMobile} d={d} />}
+            {page==="history"    && <History workouts={workouts} prs={prs} allEx={allEx} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
             {page==="prs"        && <PRs prs={prs} workouts={workouts} allEx={allEx} d={d} />}
-            {page==="bodyweight" && <BodyWeight bwLog={bwLog} saveBw={handleSaveBw} deleteBw={handleDeleteBw} showToast={showToast} d={d} />}
-            {page==="routines"   && <Routines splitTemplates={SPLIT_TEMPLATES} selectedSplitId={selectedSplitId} setSelectedSplitId={setSelectedSplitId} customRoutine={customRoutine} setCustomRoutine={setCustomRoutine} routine={activeRoutine} prs={prs} allEx={allEx} navigate={navigate} setLogState={setLogState} showToast={showToast} typeLabels={typeLabels} d={d} />}
-            {page==="profile"    && <Profile profile={profile} email={session.user.email} prs={prs} bwLog={bwLog} allEx={allEx} selectedSplitId={selectedSplitId} d={d} />}
+            {page==="bodyweight" && <BodyWeight bwLog={bwLog} saveBw={handleSaveBw} deleteBw={handleDeleteBw} showToast={showToast} isMobile={isMobile} d={d} />}
+            {page==="routines"   && <Routines splitTemplates={SPLIT_TEMPLATES} selectedSplitId={selectedSplitId} setSelectedSplitId={setSelectedSplitId} customRoutine={customRoutine} setCustomRoutine={setCustomRoutine} routine={activeRoutine} prs={prs} allEx={allEx} navigate={navigate} setLogState={setLogState} showToast={showToast} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
+            {page==="profile"    && <Profile profile={profile} email={session.user.email} prs={prs} bwLog={bwLog} allEx={allEx} selectedSplitId={selectedSplitId} isMobile={isMobile} d={d} />}
           </>
         )}
       </main>
 
-      {toast && <div style={{ position:"fixed", bottom:24, right:24, background:d.accentHover, color:"#ffffff", padding:"10px 18px", borderRadius:8, fontSize:13, fontWeight:500, zIndex:999, boxShadow:`0 10px 30px ${d.accent}55` }}>{toast}</div>}
+      {toast && <div style={{ position:"fixed", bottom:isMobile?16:24, right:isMobile?16:24, left:isMobile?16:"auto", background:d.accentHover, color:"#ffffff", padding:"10px 18px", borderRadius:8, fontSize:13, fontWeight:500, zIndex:999, boxShadow:`0 10px 30px ${d.accent}55`, textAlign:isMobile?"center":"left" }}>{toast}</div>}
     </div>
   );
 }
 
 // DASHBOARD
-function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeLabels, d }) {
+function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeLabels, isMobile, d }) {
   const totalVol = workouts.reduce((a,w)=>a+w.exercises.reduce((b,e)=>b+e.sets.reduce((c,s)=>c+s.reps*s.weight,0),0),0);
   const recent = [...workouts].sort((a,b)=>b.date-a.date).slice(0,3);
   const latestBW = bwLog.length ? [...bwLog].sort((a,b)=>b.date-a.date)[0] : null;
@@ -662,17 +692,17 @@ function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeL
     <div>
       <h1 style={hs(d).h1}>Dashboard</h1>
       <p style={hs(d).sub}>Your training overview</p>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
+      <div style={{ display:"grid", gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)", gap:12, marginBottom:20 }}>
         <StatCard val={workouts.length} label="Workouts" d={d}/>
         <StatCard val={(totalVol/1000).toFixed(0)+"k"} label="Volume lbs" d={d}/>
         <StatCard val={Object.keys(prs).length} label="PRs" d={d}/>
         <StatCard val={latestBW?latestBW.weight+"lbs":"-"} label="Body Weight" d={d}/>
       </div>
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+      <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:16, marginBottom:16 }}>
         <div style={hs(d).card}><h3 style={hs(d).h3}>Volume by Type</h3><VolChart workouts={workouts} typeLabels={typeLabels} d={d}/></div>
         <div style={hs(d).card}><h3 style={hs(d).h3}>Volume by Muscle</h3><MuscleChart workouts={workouts} allEx={allEx} d={d}/></div>
       </div>
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+      <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:16, marginBottom:16 }}>
         <div style={hs(d).card}><h3 style={hs(d).h3}>Bench Press Progress</h3><ProgressChart workouts={workouts} exId="bench" d={d}/></div>
         <div style={hs(d).card}><h3 style={hs(d).h3}>Squat Progress</h3><ProgressChart workouts={workouts} exId="squat" d={d}/></div>
       </div>
@@ -681,13 +711,13 @@ function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeL
           <h3 style={{...hs(d).h3,marginBottom:0}}>Recent Workouts</h3>
           <button style={hs(d).btnSm} onClick={()=>navigate("history")}>View all</button>
         </div>
-        {recent.length ? recent.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={allEx} onDelete={deleteWorkout} typeLabels={typeLabels} d={d}/>) : <Empty icon="" title="No workouts yet" desc="Head to Log Workout to get started" d={d}/>}
+        {recent.length ? recent.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={allEx} onDelete={deleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d}/>) : <Empty icon="" title="No workouts yet" desc="Head to Log Workout to get started" d={d}/>}
       </div>
     </div>
   );
 }
 
-function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, d }) {
+function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, isMobile, d }) {
   const sortedWeight = [...bwLog].sort((a,b)=>b.date-a.date);
   const latestWeight = sortedWeight[0];
   const oldestWeight = sortedWeight[sortedWeight.length-1];
@@ -704,7 +734,7 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, d }) {
       <h1 style={hs(d).h1}>Profile</h1>
       <p style={hs(d).sub}>Your account, body stats, and strongest lifts</p>
 
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1.3fr", gap:16, marginBottom:16 }}>
+      <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1.3fr", gap:16, marginBottom:16 }}>
         <div style={hs(d).card}>
           <div style={{ width:58, height:58, borderRadius:"50%", background:d.accentSoft, color:d.accentHover, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24, fontWeight:800, marginBottom:14 }}>
             {(profile.profile_name || email || "U").charAt(0).toUpperCase()}
@@ -720,7 +750,7 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, d }) {
 
         <div style={hs(d).card}>
           <h3 style={hs(d).h3}>Weight</h3>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10 }}>
+          <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"repeat(3,1fr)", gap:10 }}>
             {[
               { label:"Current", val:latestWeight?latestWeight.weight+"lbs":"-" },
               { label:"Change", val:weightChange!==null?(weightChange>0?"+":"")+weightChange+"lbs":"-" },
@@ -741,19 +771,21 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, d }) {
           <span style={{ fontSize:12, color:d.text3 }}>{prRows.length} tracked</span>
         </div>
         {prRows.length ? (
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-            <thead><tr>{["Exercise","Best","Est. 1RM","Date"].map(h=><th key={h} style={hs(d).th}>{h}</th>)}</tr></thead>
-            <tbody>
-              {prRows.map(({ id, pr, ex })=>(
-                <tr key={id}>
-                  <td style={{...hs(d).td,fontWeight:600}}>{ex.name}</td>
-                  <td style={hs(d).td}>{pr.weight} lbs x {pr.reps}</td>
-                  <td style={{...hs(d).td,color:d.text2}}>{Math.round(pr.weight*(1+pr.reps/30))} lbs</td>
-                  <td style={{...hs(d).td,color:d.text3}}>{fmtDate(pr.date)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", minWidth:isMobile?520:"auto", borderCollapse:"collapse", fontSize:13 }}>
+              <thead><tr>{["Exercise","Best","Est. 1RM","Date"].map(h=><th key={h} style={hs(d).th}>{h}</th>)}</tr></thead>
+              <tbody>
+                {prRows.map(({ id, pr, ex })=>(
+                  <tr key={id}>
+                    <td style={{...hs(d).td,fontWeight:600}}>{ex.name}</td>
+                    <td style={hs(d).td}>{pr.weight} lbs x {pr.reps}</td>
+                    <td style={{...hs(d).td,color:d.text2}}>{Math.round(pr.weight*(1+pr.reps/30))} lbs</td>
+                    <td style={{...hs(d).td,color:d.text3}}>{fmtDate(pr.date)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <Empty icon="" title="No PRs yet" desc="Log workouts to start filling this in" d={d}/>
         )}
@@ -828,13 +860,13 @@ function BWChart({ data, d }) {
 }
 
 // WORKOUT ENTRY
-function WorkoutEntry({ w, prs, allEx, onDelete, typeLabels, d }) {
+function WorkoutEntry({ w, prs, allEx, onDelete, typeLabels, isMobile, d }) {
   const [open, setOpen] = useState(false);
   const borderColor = WORKOUT_TYPE_META[w.type]?.color || d.border;
   const totalVol = w.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+s.reps*s.weight,0),0);
   return (
     <div style={{ border:`1px solid ${d.border}`, borderLeft:`3px solid ${borderColor}`, borderRadius:10, marginBottom:10, overflow:"hidden" }}>
-      <div style={{ padding:"12px 16px", background:d.surface, display:"flex", alignItems:"center", justifyContent:"space-between", cursor:"pointer" }} onClick={()=>setOpen(!open)}>
+      <div style={{ padding:"12px 16px", background:d.surface, display:"flex", alignItems:isMobile?"flex-start":"center", justifyContent:"space-between", gap:10, cursor:"pointer" }} onClick={()=>setOpen(!open)}>
         <div>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <span style={{ fontWeight:600, fontSize:14, color:d.text }}>{typeLabel(w.type, typeLabels)}</span>
@@ -850,27 +882,29 @@ function WorkoutEntry({ w, prs, allEx, onDelete, typeLabels, d }) {
       {open && (
         <div style={{ padding:"0 16px 12px", borderTop:`1px solid ${d.border}`, background:d.surface }}>
           {w.notes && <p style={{ fontStyle:"italic", fontSize:13, color:d.text2, margin:"10px 0" }}>"{w.notes}"</p>}
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-            <thead><tr>{["Exercise","Sets","Best Set","RPE","Volume"].map(h=><th key={h} style={hs(d).th}>{h}</th>)}</tr></thead>
-            <tbody>
-              {w.exercises.map(ex=>{
-                const exData=allEx.find(e=>e.id===ex.id);
-                const best=ex.sets.reduce((b,s)=>s.weight>b.weight?s:b,ex.sets[0]);
-                const vol=ex.sets.reduce((a,s)=>a+s.reps*s.weight,0);
-                const isPR=prs[ex.id]&&prs[ex.id].weight===best.weight&&new Date(prs[ex.id].date).toDateString()===new Date(w.date).toDateString();
-                const rpes=ex.sets.filter(s=>s.rpe).map(s=>s.rpe);
-                return (
-                  <tr key={ex.id}>
-                    <td style={hs(d).td}>{exData?.name||ex.id}{isPR&&<span style={{ background:d.warningBg,color:d.warning,fontSize:10,fontWeight:700,padding:"2px 5px",borderRadius:4,marginLeft:6 }}>PR</span>}</td>
-                    <td style={{...hs(d).td,color:d.text2}}>{ex.sets.length}</td>
-                    <td style={{...hs(d).td,color:d.text2}}>{best.weight}lbs x {best.reps}</td>
-                    <td style={{...hs(d).td,color:d.text3}}>{rpes.length?rpes.join(", "):"-"}</td>
-                    <td style={{...hs(d).td,color:d.text2}}>{vol.toLocaleString()}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", minWidth:isMobile?620:"auto", borderCollapse:"collapse", fontSize:13 }}>
+              <thead><tr>{["Exercise","Sets","Best Set","RPE","Volume"].map(h=><th key={h} style={hs(d).th}>{h}</th>)}</tr></thead>
+              <tbody>
+                {w.exercises.map(ex=>{
+                  const exData=allEx.find(e=>e.id===ex.id);
+                  const best=ex.sets.reduce((b,s)=>s.weight>b.weight?s:b,ex.sets[0]);
+                  const vol=ex.sets.reduce((a,s)=>a+s.reps*s.weight,0);
+                  const isPR=prs[ex.id]&&prs[ex.id].weight===best.weight&&new Date(prs[ex.id].date).toDateString()===new Date(w.date).toDateString();
+                  const rpes=ex.sets.filter(s=>s.rpe).map(s=>s.rpe);
+                  return (
+                    <tr key={ex.id}>
+                      <td style={hs(d).td}>{exData?.name||ex.id}{isPR&&<span style={{ background:d.warningBg,color:d.warning,fontSize:10,fontWeight:700,padding:"2px 5px",borderRadius:4,marginLeft:6 }}>PR</span>}</td>
+                      <td style={{...hs(d).td,color:d.text2}}>{ex.sets.length}</td>
+                      <td style={{...hs(d).td,color:d.text2}}>{best.weight}lbs x {best.reps}</td>
+                      <td style={{...hs(d).td,color:d.text3}}>{rpes.length?rpes.join(", "):"-"}</td>
+                      <td style={{...hs(d).td,color:d.text2}}>{vol.toLocaleString()}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
@@ -938,9 +972,10 @@ function RestTimer({ d }) {
 }
 
 // LOG WORKOUT
-function LogWorkout({ logState, setLogState, prs, workouts, allEx, workoutTypes, typeLabels, saveCustomEx, submit, showToast, d }) {
+function LogWorkout({ logState, setLogState, prs, workouts, allEx, workoutTypes, typeLabels, saveCustomEx, submit, showToast, isMobile, d }) {
   const [showExModal, setShowExModal]   = useState(false);
   const [showCustModal, setShowCustModal] = useState(false);
+  const [showTimer, setShowTimer] = useState(() => localStorage.getItem("il_show_timer") === "true");
   const [exSearch, setExSearch]         = useState("");
   const [exFilter, setExFilter]         = useState("all");
   const [newEx, setNewEx]               = useState({ name:"", muscle:"", type:"push" });
@@ -975,11 +1010,22 @@ function LogWorkout({ logState, setLogState, prs, workouts, allEx, workoutTypes,
   const existing=logState.exercises.map(e=>e.id);
   const filtered=allEx.filter(e=>!existing.includes(e.id)&&(exFilter==="all"||e.type===exFilter)&&(e.name.toLowerCase().includes(exSearch.toLowerCase())||e.muscle.toLowerCase().includes(exSearch.toLowerCase())));
 
+  function toggleTimer() {
+    const next = !showTimer;
+    setShowTimer(next);
+    localStorage.setItem("il_show_timer", String(next));
+  }
+
   return (
     <div>
-      <h1 style={hs(d).h1}>Log Workout</h1>
-      <p style={hs(d).sub}>Record today's session</p>
-      <RestTimer d={d}/>
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, marginBottom:showTimer?12:20 }}>
+        <div>
+          <h1 style={hs(d).h1}>Log Workout</h1>
+          <p style={{...hs(d).sub,marginBottom:0}}>Record today's session</p>
+        </div>
+        <button style={{...hs(d).btnSm, background:showTimer?d.accentSoft:d.surface2, color:showTimer?d.accentHover:d.text2}} onClick={toggleTimer}>{showTimer ? "Hide Timer" : "Timer"}</button>
+      </div>
+      {showTimer&&<RestTimer d={d}/>}
       <div style={{...hs(d).card,marginBottom:16}}>
         <h3 style={hs(d).h3}>Workout Type</h3>
         <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
@@ -987,7 +1033,7 @@ function LogWorkout({ logState, setLogState, prs, workouts, allEx, workoutTypes,
             <button key={t} onClick={()=>setLogState({...logState,type:t})} style={{...hs(d).btn,...(logState.type===t?{background:d.accent,color:d.accentText}:{background:d.surface2,color:d.text,border:`1px solid ${d.border}`})}}>{typeLabel(t, typeLabels)}</button>
           ))}
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+        <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:12 }}>
           <div><label style={hs(d).label}>Date</label><input style={hs(d).input} type="date" value={logState.date} onChange={e=>setLogState({...logState,date:e.target.value})}/></div>
           <div><label style={hs(d).label}>Session Notes</label><input style={hs(d).input} type="text" placeholder="How did it feel?" value={logState.notes} onChange={e=>setLogState({...logState,notes:e.target.value})}/></div>
         </div>
@@ -1016,11 +1062,11 @@ function LogWorkout({ logState, setLogState, prs, workouts, allEx, workoutTypes,
                     <button style={{ background:"none", border:"none", color:d.danger, padding:"4px 8px", borderRadius:6, cursor:"pointer", fontSize:13 }} onClick={()=>removeEx(i)}>x</button>
                   </div>
                 </div>
-                <div style={{ display:"grid", gridTemplateColumns:"28px 1fr 1fr 72px 1fr 24px", gap:6, marginBottom:4 }}>
-                  {["#","lbs","Reps","RPE","Note",""].map((h,i)=><div key={i} style={{ fontSize:10, color:d.text3, fontWeight:600 }}>{h}</div>)}
+                <div style={{ display:"grid", gridTemplateColumns:isMobile?"28px 1fr 1fr 64px 24px":"28px 1fr 1fr 72px 1fr 24px", gap:6, marginBottom:4 }}>
+                  {(isMobile?["#","lbs","Reps","RPE",""]:["#","lbs","Reps","RPE","Note",""]).map((h,i)=><div key={i} style={{ fontSize:10, color:d.text3, fontWeight:600 }}>{h}</div>)}
                 </div>
                 {ex.sets.map((set,si)=>(
-                  <div key={si} style={{ display:"grid", gridTemplateColumns:"28px 1fr 1fr 72px 1fr 24px", gap:6, marginBottom:5, alignItems:"center" }}>
+                  <div key={si} style={{ display:"grid", gridTemplateColumns:isMobile?"28px 1fr 1fr 64px 24px":"28px 1fr 1fr 72px 1fr 24px", gap:6, marginBottom:isMobile?9:5, alignItems:"center" }}>
                     <div style={{ fontSize:11, fontWeight:700, color:d.text3, textAlign:"center", background:d.border, borderRadius:5, padding:"4px 0" }}>{si+1}</div>
                     <input style={hs(d).input} type="number" value={set.weight||""} placeholder="lbs" onChange={e=>updateSet(i,si,"weight",e.target.value)}/>
                     <input style={hs(d).input} type="number" value={set.reps||""} placeholder="reps" onChange={e=>updateSet(i,si,"reps",e.target.value)}/>
@@ -1028,8 +1074,9 @@ function LogWorkout({ logState, setLogState, prs, workouts, allEx, workoutTypes,
                       <option value="">-</option>
                       {[6,6.5,7,7.5,8,8.5,9,9.5,10].map(r=><option key={r} value={r}>{r}</option>)}
                     </select>
-                    <input style={hs(d).input} type="text" value={set.note} placeholder="note..." onChange={e=>updateSet(i,si,"note",e.target.value)}/>
+                    {!isMobile&&<input style={hs(d).input} type="text" value={set.note} placeholder="note..." onChange={e=>updateSet(i,si,"note",e.target.value)}/>}
                     <button style={{ background:"none", border:"none", color:d.text3, cursor:"pointer" }} onClick={()=>removeSet(i,si)}>x</button>
+                    {isMobile&&<input style={{...hs(d).input,gridColumn:"2 / -1"}} type="text" value={set.note} placeholder="note..." onChange={e=>updateSet(i,si,"note",e.target.value)}/>}
                   </div>
                 ))}
               </div>
@@ -1098,13 +1145,13 @@ function LogWorkout({ logState, setLogState, prs, workouts, allEx, workoutTypes,
 }
 
 // HISTORY
-function History({ workouts, prs, allEx, deleteWorkout, typeLabels, d }) {
+function History({ workouts, prs, allEx, deleteWorkout, typeLabels, isMobile, d }) {
   const sorted=[...workouts].sort((a,b)=>b.date-a.date);
   return (
     <div>
       <h1 style={hs(d).h1}>History</h1>
       <p style={hs(d).sub}>{sorted.length} sessions logged</p>
-      {sorted.length===0?<Empty icon="" title="No workouts yet" desc="Head to Log Workout to get started" d={d}/>:sorted.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={allEx} onDelete={deleteWorkout} typeLabels={typeLabels} d={d}/>)}
+      {sorted.length===0?<Empty icon="" title="No workouts yet" desc="Head to Log Workout to get started" d={d}/>:sorted.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={allEx} onDelete={deleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d}/>)}
     </div>
   );
 }
@@ -1120,26 +1167,28 @@ function PRs({ prs, workouts, allEx, d }) {
           <h3 style={{...hs(d).h3,display:"flex",alignItems:"center",gap:8}}>
             {cap(type)} Exercises <span style={{...badgeStyle(type),display:"inline-flex",padding:"2px 8px",borderRadius:20,fontSize:11,fontWeight:600}}>{cap(type)}</span>
           </h3>
-          <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
-            <thead><tr>{["Exercise","Best Weight","Reps","Est. 1RM","Overload Suggestion","Date"].map(h=><th key={h} style={hs(d).th}>{h}</th>)}</tr></thead>
-            <tbody>
-              {allEx.filter(e=>e.type===type).map(e=>{
-                const pr=prs[e.id]; const suggest=getOverloadSuggestion(e.id,workouts);
-                if(!pr) return <tr key={e.id}><td style={hs(d).td}>{e.name}</td><td style={{...hs(d).td,color:d.text3,fontStyle:"italic"}} colSpan={5}>Not logged yet</td></tr>;
-                const orm=Math.round(pr.weight*(1+pr.reps/30));
-                return (
-                  <tr key={e.id}>
-                    <td style={{...hs(d).td,fontWeight:500}}>{e.name}</td>
-                    <td style={{...hs(d).td,fontWeight:700}}>{pr.weight} lbs</td>
-                    <td style={{...hs(d).td,color:d.text2}}>{pr.reps}</td>
-                    <td style={{...hs(d).td,color:d.text2}}>{orm} lbs</td>
-                    <td style={hs(d).td}>{suggest?<span style={{ background:d.warningBg,color:d.warning,fontSize:11,fontWeight:600,padding:"2px 7px",borderRadius:4 }}>{suggest}lbs</span>:<span style={{ color:d.text3 }}>-</span>}</td>
-                    <td style={{...hs(d).td,color:d.text3}}>{fmtDate(pr.date)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <div style={{ overflowX:"auto" }}>
+            <table style={{ width:"100%", minWidth:680, borderCollapse:"collapse", fontSize:13 }}>
+              <thead><tr>{["Exercise","Best Weight","Reps","Est. 1RM","Overload Suggestion","Date"].map(h=><th key={h} style={hs(d).th}>{h}</th>)}</tr></thead>
+              <tbody>
+                {allEx.filter(e=>e.type===type).map(e=>{
+                  const pr=prs[e.id]; const suggest=getOverloadSuggestion(e.id,workouts);
+                  if(!pr) return <tr key={e.id}><td style={hs(d).td}>{e.name}</td><td style={{...hs(d).td,color:d.text3,fontStyle:"italic"}} colSpan={5}>Not logged yet</td></tr>;
+                  const orm=Math.round(pr.weight*(1+pr.reps/30));
+                  return (
+                    <tr key={e.id}>
+                      <td style={{...hs(d).td,fontWeight:500}}>{e.name}</td>
+                      <td style={{...hs(d).td,fontWeight:700}}>{pr.weight} lbs</td>
+                      <td style={{...hs(d).td,color:d.text2}}>{pr.reps}</td>
+                      <td style={{...hs(d).td,color:d.text2}}>{orm} lbs</td>
+                      <td style={hs(d).td}>{suggest?<span style={{ background:d.warningBg,color:d.warning,fontSize:11,fontWeight:600,padding:"2px 7px",borderRadius:4 }}>{suggest}lbs</span>:<span style={{ color:d.text3 }}>-</span>}</td>
+                      <td style={{...hs(d).td,color:d.text3}}>{fmtDate(pr.date)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       ))}
     </div>
@@ -1147,7 +1196,7 @@ function PRs({ prs, workouts, allEx, d }) {
 }
 
 // BODY WEIGHT
-function BodyWeight({ bwLog, saveBw, deleteBw, showToast, d }) {
+function BodyWeight({ bwLog, saveBw, deleteBw, showToast, isMobile, d }) {
   const [weight, setWeight] = useState("");
   const [date, setDate]     = useState(new Date().toISOString().slice(0,10));
   const [saving, setSaving] = useState(false);
@@ -1171,15 +1220,15 @@ function BodyWeight({ bwLog, saveBw, deleteBw, showToast, d }) {
     <div>
       <h1 style={hs(d).h1}>Body Weight</h1>
       <p style={hs(d).sub}>Track your weight over time</p>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:12, marginBottom:20 }}>
+      <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"repeat(3,1fr)", gap:12, marginBottom:20 }}>
         <StatCard val={latest?latest.weight+"lbs":"-"} label="Current" d={d}/>
         <StatCard val={change!==null?(change>0?"+":"")+change+"lbs":"-"} label="Total Change" d={d}/>
         <StatCard val={sorted.length} label="Entries" d={d}/>
       </div>
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+      <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:16, marginBottom:16 }}>
         <div style={hs(d).card}>
           <h3 style={hs(d).h3}>Log Weight</h3>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:12 }}>
+          <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:10, marginBottom:12 }}>
             <div><label style={hs(d).label}>Date</label><input style={hs(d).input} type="date" value={date} onChange={e=>setDate(e.target.value)}/></div>
             <div><label style={hs(d).label}>Weight (lbs)</label><input style={hs(d).input} type="number" placeholder="180.5" value={weight} onChange={e=>setWeight(e.target.value)}/></div>
           </div>
@@ -1206,7 +1255,7 @@ function BodyWeight({ bwLog, saveBw, deleteBw, showToast, d }) {
 }
 
 // ROUTINES
-function Routines({ splitTemplates, selectedSplitId, setSelectedSplitId, customRoutine, setCustomRoutine, routine, prs, allEx, navigate, setLogState, showToast, typeLabels, d }) {
+function Routines({ splitTemplates, selectedSplitId, setSelectedSplitId, customRoutine, setCustomRoutine, routine, prs, allEx, navigate, setLogState, showToast, typeLabels, isMobile, d }) {
   const selectedTemplate = splitTemplates.find(s => s.id === selectedSplitId);
   function startDay(di) {
     const day=routine[di];
@@ -1227,7 +1276,7 @@ function Routines({ splitTemplates, selectedSplitId, setSelectedSplitId, customR
       <h1 style={hs(d).h1}>Routines</h1>
       <p style={hs(d).sub}>Choose a common split or build your own weekly plan</p>
 
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))", gap:10, marginBottom:16 }}>
+      <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"repeat(auto-fit,minmax(180px,1fr))", gap:10, marginBottom:16 }}>
         {splitTemplates.map(split=>(
           <button key={split.id} onClick={()=>setSelectedSplitId(split.id)} style={{ ...hs(d).card, textAlign:"left", cursor:"pointer", padding:14, background:selectedSplitId===split.id?d.surface2:d.surface }}>
             <div style={{ fontWeight:700, color:d.text, marginBottom:4 }}>{split.name}</div>
@@ -1241,9 +1290,9 @@ function Routines({ splitTemplates, selectedSplitId, setSelectedSplitId, customR
       </div>
 
       {selectedSplitId === "custom" ? (
-        <CustomSplitEditor routine={customRoutine} setRoutine={setCustomRoutine} allEx={allEx} d={d} />
+        <CustomSplitEditor routine={customRoutine} setRoutine={setCustomRoutine} allEx={allEx} isMobile={isMobile} d={d} />
       ) : (
-        <div style={{ marginBottom:16, display:"flex", justifyContent:"space-between", alignItems:"center", gap:12 }}>
+        <div style={{ marginBottom:16, display:"flex", flexDirection:isMobile?"column":"row", justifyContent:"space-between", alignItems:isMobile?"stretch":"center", gap:12 }}>
           <div>
             <h2 style={{ fontSize:18, color:d.text, margin:"0 0 3px" }}>{selectedTemplate?.name}</h2>
             <div style={{ fontSize:13, color:d.text3 }}>{selectedTemplate?.desc}</div>
@@ -1254,13 +1303,13 @@ function Routines({ splitTemplates, selectedSplitId, setSelectedSplitId, customR
 
       <div style={hs(d).card}>
         <h3 style={{...hs(d).h3,marginBottom:16}}>Weekly Schedule</h3>
-        {routine.map((day,di)=><RoutineDay key={`${day.day}-${di}`} day={day} prs={prs} allEx={allEx} onStart={()=>startDay(di)} typeLabels={typeLabels} d={d}/>)}
+        {routine.map((day,di)=><RoutineDay key={`${day.day}-${di}`} day={day} prs={prs} allEx={allEx} onStart={()=>startDay(di)} typeLabels={typeLabels} isMobile={isMobile} d={d}/>)}
       </div>
     </div>
   );
 }
 
-function CustomSplitEditor({ routine, setRoutine, allEx, d }) {
+function CustomSplitEditor({ routine, setRoutine, allEx, isMobile, d }) {
   function updateDay(index, updater) {
     setRoutine(prev => prev.map((day, i) => i === index ? updater(day) : day));
   }
@@ -1300,7 +1349,7 @@ function CustomSplitEditor({ routine, setRoutine, allEx, d }) {
           const available = allEx.filter(ex => !day.exercises.includes(ex.id));
           return (
             <div key={day.day} style={{ border:`1px solid ${d.border}`, borderRadius:8, padding:12 }}>
-              <div style={{ display:"grid", gridTemplateColumns:"110px 1fr auto", gap:10, alignItems:"center", marginBottom:10 }}>
+              <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"110px 1fr auto", gap:10, alignItems:"center", marginBottom:10 }}>
                 <div style={{ fontSize:13, fontWeight:700, color:d.text }}>{day.day}</div>
                 <input style={hs(d).input} value={day.label} placeholder="Upper A, Full Body, Arms..." onChange={e=>setLabel(index, e.target.value)} />
                 <button style={hs(d).btnSm} onClick={()=>markRest(index)}>Rest</button>
@@ -1334,13 +1383,13 @@ function CustomSplitEditor({ routine, setRoutine, allEx, d }) {
   );
 }
 
-function RoutineDay({ day, prs, allEx, onStart, typeLabels, d }) {
+function RoutineDay({ day, prs, allEx, onStart, typeLabels, isMobile, d }) {
   const [open, setOpen] = useState(false);
   const borderColor=WORKOUT_TYPE_META[day.type]?.color || d.border;
   const label = day.label || typeLabel(day.type, typeLabels);
   return (
     <div style={{ border:`1px solid ${d.border}`, borderLeft:`3px solid ${borderColor}`, borderRadius:8, marginBottom:6, overflow:"hidden" }}>
-      <div style={{ padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:"center", cursor:"pointer", background:d.surface }} onClick={()=>setOpen(!open)}>
+      <div style={{ padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:isMobile?"flex-start":"center", gap:10, cursor:"pointer", background:d.surface }} onClick={()=>setOpen(!open)}>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <span style={{ fontWeight:600, fontSize:13, color:d.text }}>{day.day}</span>
           <span style={{...badgeStyle(day.type),display:"inline-flex",padding:"2px 8px",borderRadius:20,fontSize:11,fontWeight:600}}>{label}</span>
@@ -1353,18 +1402,20 @@ function RoutineDay({ day, prs, allEx, onStart, typeLabels, d }) {
       {open&&(
         <div style={{ padding:"0 14px 12px", borderTop:`1px solid ${d.border}`, background:d.surface }}>
           {day.exercises.length>0?(
-            <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13, marginTop:10 }}>
-              <thead><tr>{["Exercise","Muscle","Your PR"].map(h=><th key={h} style={hs(d).th}>{h}</th>)}</tr></thead>
-              <tbody>
-                {day.exercises.map(id=>{ const ex=allEx.find(e=>e.id===id); const pr=prs[id];
-                  return ex?(<tr key={id}>
-                    <td style={hs(d).td}>{ex.name}</td>
-                    <td style={{...hs(d).td,color:d.text3}}>{ex.muscle}</td>
-                    <td style={hs(d).td}>{pr?<span style={{ background:d.warningBg,color:d.warning,fontSize:11,padding:"2px 6px",borderRadius:4 }}>{pr.weight}x{pr.reps}</span>:<span style={{ color:d.text3 }}>-</span>}</td>
-                  </tr>):null;
-                })}
-              </tbody>
-            </table>
+            <div style={{ overflowX:"auto" }}>
+              <table style={{ width:"100%", minWidth:isMobile?460:"auto", borderCollapse:"collapse", fontSize:13, marginTop:10 }}>
+                <thead><tr>{["Exercise","Muscle","Your PR"].map(h=><th key={h} style={hs(d).th}>{h}</th>)}</tr></thead>
+                <tbody>
+                  {day.exercises.map(id=>{ const ex=allEx.find(e=>e.id===id); const pr=prs[id];
+                    return ex?(<tr key={id}>
+                      <td style={hs(d).td}>{ex.name}</td>
+                      <td style={{...hs(d).td,color:d.text3}}>{ex.muscle}</td>
+                      <td style={hs(d).td}>{pr?<span style={{ background:d.warningBg,color:d.warning,fontSize:11,padding:"2px 6px",borderRadius:4 }}>{pr.weight}x{pr.reps}</span>:<span style={{ color:d.text3 }}>-</span>}</td>
+                    </tr>):null;
+                  })}
+                </tbody>
+              </table>
+            </div>
           ):<p style={{ color:d.text3, fontSize:13, paddingTop:10 }}>Rest day</p>}
         </div>
       )}
