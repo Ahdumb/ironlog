@@ -168,8 +168,8 @@ function badgeStyle(type) {
 }
 
 // THEMES
-const LIGHT = { bg:"#fafaf9",surface:"#ffffff",surface2:"#f4f4f2",border:"#e8e6e0",text:"#1a1a18",text2:"#6b6b67",text3:"#9c9c97",accent:"#1a1a18",accentText:"#ffffff",green:"#2d7d46",greenBg:"#eef7f1",gridLine:"rgba(0,0,0,.04)" };
-const DARK  = { bg:"#0f0f0e",surface:"#1a1a18",surface2:"#252523",border:"#333330",text:"#f0ede8",text2:"#a8a49e",text3:"#6b6b67",accent:"#f0ede8",accentText:"#1a1a18",green:"#5ab87a",greenBg:"#1a2e22",gridLine:"rgba(255,255,255,.04)" };
+const LIGHT = { bg:"#fafaf9",surface:"#ffffff",surface2:"#f4f4f2",border:"#e8e6e0",text:"#1a1a18",text2:"#6b6b67",text3:"#9c9c97",accent:"#00AEEF",accentHover:"#0077B6",accentSoft:"#E6F7FF",accentGlow:"#38D9FF",accentText:"#ffffff",warning:"#FFB020",warningBg:"#fff6df",danger:"#c0392b",dangerBg:"#fdf0ee",green:"#0077B6",greenBg:"#E6F7FF",gridLine:"rgba(0,0,0,.04)" };
+const DARK  = { bg:"#0f0f0e",surface:"#1a1a18",surface2:"#252523",border:"#333330",text:"#f0ede8",text2:"#a8a49e",text3:"#6b6b67",accent:"#38D9FF",accentHover:"#00AEEF",accentSoft:"#102f3a",accentGlow:"#38D9FF",accentText:"#061015",warning:"#FFB020",warningBg:"#332713",danger:"#ff7f73",dangerBg:"#351b19",green:"#38D9FF",greenBg:"#102f3a",gridLine:"rgba(255,255,255,.04)" };
 
 function hs(d) {
   return {
@@ -252,7 +252,7 @@ function AuthPage({ d, dark, toggleDark }) {
         </div>
 
         {success ? (
-          <div style={{ background:"#eef7f1", color:"#2d7d46", borderRadius:10, padding:"12px 16px", fontSize:13, marginBottom:16 }}>{success}</div>
+          <div style={{ background:d.accentSoft, color:d.accentHover, borderRadius:10, padding:"12px 16px", fontSize:13, marginBottom:16 }}>{success}</div>
         ) : (
           <>
             <div style={{ marginBottom:12 }}>
@@ -263,7 +263,7 @@ function AuthPage({ d, dark, toggleDark }) {
               <label style={hs(d).label}>Password</label>
               <input style={hs(d).input} type="password" placeholder="********" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} />
             </div>
-            {error && <div style={{ background:"#fdf0ee", color:"#c0392b", borderRadius:8, padding:"10px 14px", fontSize:13, marginBottom:14 }}>{error}</div>}
+            {error && <div style={{ background:d.dangerBg, color:d.danger, borderRadius:8, padding:"10px 14px", fontSize:13, marginBottom:14 }}>{error}</div>}
             <button onClick={handleSubmit} disabled={loading} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, width:"100%", justifyContent:"center", padding:12, fontSize:14, opacity:loading?.6:1 }}>
               {loading ? "..." : mode==="login" ? "Sign In" : "Create Account"}
             </button>
@@ -427,7 +427,7 @@ function MainApp({ session, d, dark, toggleDark }) {
         </div>
         <div style={{ padding:"4px 12px 6px", fontSize:11, fontWeight:600, color:d.text3, letterSpacing:".08em", textTransform:"uppercase" }}>Menu</div>
         {navItems.map(n => (
-          <button key={n.id} onClick={()=>navigate(n.id)} style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 16px", margin:"1px 8px", borderRadius:8, cursor:"pointer", fontSize:14, border:"none", background:page===n.id?d.accent:"none", color:page===n.id?d.accentText:d.text2, width:"calc(100% - 16px)", textAlign:"left" }}>
+          <button key={n.id} onClick={()=>navigate(n.id)} style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 16px", margin:"1px 8px", borderRadius:8, cursor:"pointer", fontSize:14, border:"none", background:page===n.id?d.accentSoft:"none", color:page===n.id?d.accentHover:d.text2, width:"calc(100% - 16px)", textAlign:"left", boxShadow:page===n.id?`inset 3px 0 0 ${d.accent}`:"none" }}>
             {n.icon}{n.label}
           </button>
         ))}
@@ -462,7 +462,7 @@ function MainApp({ session, d, dark, toggleDark }) {
         )}
       </main>
 
-      {toast && <div style={{ position:"fixed", bottom:24, right:24, background:d.accent, color:d.accentText, padding:"10px 18px", borderRadius:8, fontSize:13, fontWeight:500, zIndex:999, boxShadow:"0 4px 20px rgba(0,0,0,.25)" }}>{toast}</div>}
+      {toast && <div style={{ position:"fixed", bottom:24, right:24, background:d.accentHover, color:"#ffffff", padding:"10px 18px", borderRadius:8, fontSize:13, fontWeight:500, zIndex:999, boxShadow:`0 10px 30px ${d.accent}55` }}>{toast}</div>}
     </div>
   );
 }
@@ -549,7 +549,7 @@ function ProgressChart({ workouts, exId, d }) {
   const config = useMemo(() => {
     const sessions=workouts.filter(w=>w.exercises.find(e=>e.id===exId)).sort((a,b)=>a.date-b.date).slice(-8);
     if (!sessions.length) return null;
-    return { type:"line", data:{ labels:sessions.map(w=>fmtDate(w.date)), datasets:[{ data:sessions.map(w=>Math.max(...w.exercises.find(e=>e.id===exId).sets.map(s=>s.weight))), borderColor:d.accent, backgroundColor:d.accent+"18", borderWidth:2, pointBackgroundColor:d.accent, pointRadius:4, fill:true, tension:.35 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ grid:{color:d.gridLine}, ticks:{color:d.text3,callback:v=>v+"lbs"} }, x:{ grid:{display:false}, ticks:{color:d.text3} } } } };
+    return { type:"line", data:{ labels:sessions.map(w=>fmtDate(w.date)), datasets:[{ data:sessions.map(w=>Math.max(...w.exercises.find(e=>e.id===exId).sets.map(s=>s.weight))), borderColor:d.accent, backgroundColor:d.accent+"18", borderWidth:2, pointBackgroundColor:d.accentHover, pointRadius:4, fill:true, tension:.35 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ grid:{color:d.gridLine}, ticks:{color:d.text3,callback:v=>v+"lbs"} }, x:{ grid:{display:false}, ticks:{color:d.text3} } } } };
   }, [workouts, exId, d]);
   useChart(ref, config);
   return <div style={{height:180}}><canvas ref={ref}/></div>;
@@ -560,7 +560,7 @@ function BWChart({ data, d }) {
   const config = useMemo(() => {
     const sorted=[...data].sort((a,b)=>a.date-b.date);
     if (!sorted.length) return null;
-    return { type:"line", data:{ labels:sorted.map(e=>fmtDate(e.date)), datasets:[{ data:sorted.map(e=>e.weight), borderColor:"#7b4ea0", backgroundColor:"#7b4ea018", borderWidth:2, pointBackgroundColor:"#7b4ea0", pointRadius:4, fill:true, tension:.35 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ grid:{color:d.gridLine}, ticks:{color:d.text3,callback:v=>v+"lbs"} }, x:{ grid:{display:false}, ticks:{color:d.text3} } } } };
+    return { type:"line", data:{ labels:sorted.map(e=>fmtDate(e.date)), datasets:[{ data:sorted.map(e=>e.weight), borderColor:d.accentHover, backgroundColor:d.accent+"18", borderWidth:2, pointBackgroundColor:d.accent, pointRadius:4, fill:true, tension:.35 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ grid:{color:d.gridLine}, ticks:{color:d.text3,callback:v=>v+"lbs"} }, x:{ grid:{display:false}, ticks:{color:d.text3} } } } };
   }, [data, d]);
   useChart(ref, config);
   return <div style={{height:220}}><canvas ref={ref}/></div>;
@@ -582,7 +582,7 @@ function WorkoutEntry({ w, prs, allEx, onDelete, typeLabels, d }) {
           <div style={{ fontSize:12, color:d.text3, marginTop:2 }}>{fmtDateFull(w.date)} / {w.exercises.length} exercises / {totalVol.toLocaleString()} lbs</div>
         </div>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
-          {onDelete && <button style={{ background:"#fdf0ee", color:"#c0392b", border:"none", borderRadius:6, padding:"4px 10px", fontSize:12, fontWeight:600, cursor:"pointer" }} onClick={e=>{e.stopPropagation();onDelete(w.id)}}>Delete</button>}
+          {onDelete && <button style={{ background:d.dangerBg, color:d.danger, border:"none", borderRadius:6, padding:"4px 10px", fontSize:12, fontWeight:600, cursor:"pointer" }} onClick={e=>{e.stopPropagation();onDelete(w.id)}}>Delete</button>}
           <span style={{ color:d.text3, fontSize:12 }}>{open?"^":"v"}</span>
         </div>
       </div>
@@ -600,7 +600,7 @@ function WorkoutEntry({ w, prs, allEx, onDelete, typeLabels, d }) {
                 const rpes=ex.sets.filter(s=>s.rpe).map(s=>s.rpe);
                 return (
                   <tr key={ex.id}>
-                    <td style={hs(d).td}>{exData?.name||ex.id}{isPR&&<span style={{ background:"#fdf4e7",color:"#b05f0a",fontSize:10,fontWeight:700,padding:"2px 5px",borderRadius:4,marginLeft:6 }}>PR</span>}</td>
+                    <td style={hs(d).td}>{exData?.name||ex.id}{isPR&&<span style={{ background:d.warningBg,color:d.warning,fontSize:10,fontWeight:700,padding:"2px 5px",borderRadius:4,marginLeft:6 }}>PR</span>}</td>
                     <td style={{...hs(d).td,color:d.text2}}>{ex.sets.length}</td>
                     <td style={{...hs(d).td,color:d.text2}}>{best.weight}lbs x {best.reps}</td>
                     <td style={{...hs(d).td,color:d.text3}}>{rpes.length?rpes.join(", "):"-"}</td>
@@ -668,7 +668,7 @@ function RestTimer({ d }) {
         <div style={{ display:"flex", gap:8 }}>
           {!running
             ? <button style={{...hs(d).btn,background:d.accent,color:d.accentText}} onClick={()=>{setTimeLeft(duration);setRunning(true);}}>Start</button>
-            : <button style={{...hs(d).btn,background:"#fdf0ee",color:"#c0392b"}} onClick={()=>{setRunning(false);clearInterval(intRef.current);}}>Stop</button>}
+            : <button style={{...hs(d).btn,background:d.dangerBg,color:d.danger}} onClick={()=>{setRunning(false);clearInterval(intRef.current);}}>Stop</button>}
           <button style={{...hs(d).btn,background:d.surface2,color:d.text2,border:`1px solid ${d.border}`}} onClick={()=>{setRunning(false);clearInterval(intRef.current);setTimeLeft(null);}}>Reset</button>
         </div>
       </div>
@@ -748,11 +748,11 @@ function LogWorkout({ logState, setLogState, prs, workouts, allEx, workoutTypes,
                     <span style={{ fontWeight:600, fontSize:14, color:d.text }}>{exData?.name||ex.id}</span>
                     {exData&&<span style={{ fontSize:11, color:d.text3 }}>{exData.muscle}</span>}
                     {pr&&<span style={{ fontSize:11, color:d.text3 }}>PR: {pr.weight}x{pr.reps}</span>}
-                    {suggest&&<span style={{ fontSize:11, color:"#b05f0a", background:"#fdf4e7", borderRadius:4, padding:"1px 5px" }}>{suggest}lbs</span>}
+                    {suggest&&<span style={{ fontSize:11, color:d.warning, background:d.warningBg, borderRadius:4, padding:"1px 5px" }}>{suggest}lbs</span>}
                   </div>
                   <div style={{ display:"flex", gap:4 }}>
                     <button style={{ background:"none", border:"none", color:d.text2, padding:"4px 8px", borderRadius:6, cursor:"pointer", fontSize:13 }} onClick={()=>addSet(i)}>+ Set</button>
-                    <button style={{ background:"none", border:"none", color:"#c0392b", padding:"4px 8px", borderRadius:6, cursor:"pointer", fontSize:13 }} onClick={()=>removeEx(i)}>x</button>
+                    <button style={{ background:"none", border:"none", color:d.danger, padding:"4px 8px", borderRadius:6, cursor:"pointer", fontSize:13 }} onClick={()=>removeEx(i)}>x</button>
                   </div>
                 </div>
                 <div style={{ display:"grid", gridTemplateColumns:"28px 1fr 1fr 72px 1fr 24px", gap:6, marginBottom:4 }}>
@@ -872,7 +872,7 @@ function PRs({ prs, workouts, allEx, d }) {
                     <td style={{...hs(d).td,fontWeight:700}}>{pr.weight} lbs</td>
                     <td style={{...hs(d).td,color:d.text2}}>{pr.reps}</td>
                     <td style={{...hs(d).td,color:d.text2}}>{orm} lbs</td>
-                    <td style={hs(d).td}>{suggest?<span style={{ background:"#fdf4e7",color:"#b05f0a",fontSize:11,fontWeight:600,padding:"2px 7px",borderRadius:4 }}>{suggest}lbs</span>:<span style={{ color:d.text3 }}>-</span>}</td>
+                    <td style={hs(d).td}>{suggest?<span style={{ background:d.warningBg,color:d.warning,fontSize:11,fontWeight:600,padding:"2px 7px",borderRadius:4 }}>{suggest}lbs</span>:<span style={{ color:d.text3 }}>-</span>}</td>
                     <td style={{...hs(d).td,color:d.text3}}>{fmtDate(pr.date)}</td>
                   </tr>
                 );
@@ -1099,7 +1099,7 @@ function RoutineDay({ day, prs, allEx, onStart, typeLabels, d }) {
                   return ex?(<tr key={id}>
                     <td style={hs(d).td}>{ex.name}</td>
                     <td style={{...hs(d).td,color:d.text3}}>{ex.muscle}</td>
-                    <td style={hs(d).td}>{pr?<span style={{ background:"#fdf4e7",color:"#b05f0a",fontSize:11,padding:"2px 6px",borderRadius:4 }}>{pr.weight}x{pr.reps}</span>:<span style={{ color:d.text3 }}>-</span>}</td>
+                    <td style={hs(d).td}>{pr?<span style={{ background:d.warningBg,color:d.warning,fontSize:11,padding:"2px 6px",borderRadius:4 }}>{pr.weight}x{pr.reps}</span>:<span style={{ color:d.text3 }}>-</span>}</td>
                   </tr>):null;
                 })}
               </tbody>
