@@ -183,6 +183,20 @@ function getOverloadSuggestion(exId, workouts) {
   return Math.round((maxW+5)*10)/10;
 }
 
+function getTodayRoutineDay(activeRoutine) {
+  const dayName = new Date().toLocaleDateString("en-US", { weekday: "long" });
+  return activeRoutine.find(d => d.day === dayName) || null;
+}
+
+function buildExercisesFromDay(day, prs, workouts) {
+  if (!day || day.type === "rest" || !day.exercises?.length) return [];
+  return day.exercises.map(exId => {
+    const pr = prs[exId];
+    const suggest = getOverloadSuggestion(exId, workouts);
+    return { id: exId, sets: [{ weight: suggest || pr?.weight || 0, reps: pr?.reps || 0, rpe: "", note: suggest ? `Try ${suggest}lbs` : "" }] };
+  });
+}
+
 function badgeStyle(type) {
   const meta = WORKOUT_TYPE_META[type];
   if (meta) return { background:meta.bg, color:meta.color };
@@ -565,9 +579,10 @@ function MainApp({ session, d, dark, toggleDark }) {
   const [toast, setToast]         = useState(null);
   const toastRef = useRef(null);
 
-  const allEx  = useMemo(() => [...DEFAULT_EXERCISES, ...customEx], [customEx]);
-  const prs    = useMemo(() => calcPRs(workouts), [workouts]);
-  const streak = useMemo(() => calcStreak(workouts), [workouts]);
+  const allEx    = useMemo(() => [...DEFAULT_EXERCISES, ...customEx], [customEx]);
+  const prs      = useMemo(() => calcPRs(workouts), [workouts]);
+  const streak   = useMemo(() => calcStreak(workouts), [workouts]);
+  const todayDay = useMemo(() => getTodayRoutineDay(activeRoutine), [activeRoutine]);
   const selectedTemplate = SPLIT_TEMPLATES.find(s => s.id === selectedSplitId) || SPLIT_TEMPLATES[0];
   const activeRoutine = selectedSplitId === "custom" ? customRoutine : selectedTemplate.days;
   const typeLabels = useMemo(() => {
@@ -624,6 +639,27 @@ function MainApp({ session, d, dark, toggleDark }) {
       setLogState(newLog);
       setWorkoutStarted(true);
     }
+  }
+
+  function buildTodayLogState() {
+    const day = getTodayRoutineDay(activeRoutine);
+    const isWorkoutDay = day && day.type !== "rest";
+    return {
+      type: isWorkoutDay ? day.type : (workoutTypes[0] || "push"),
+      exercises: isWorkoutDay ? buildExercisesFromDay(day, prs, workouts) : [],
+      notes: "",
+      date: new Date().toISOString().slice(0, 10),
+    };
+  }
+
+  function handleNavigateToLog() {
+    if (!workoutStarted) setLogState(buildTodayLogState());
+    setPage("log");
+  }
+
+  function handleCancelWorkout() {
+    setLogState(buildTodayLogState());
+    setWorkoutStarted(false);
   }
 
   async function handleDeleteWorkout(id) {
@@ -699,7 +735,7 @@ function MainApp({ session, d, dark, toggleDark }) {
     { id:"profile",    label:"Profile",          icon:<UserIcon /> },
   ];
   const navButton = (n) => (
-    <button key={n.id} onClick={()=>navigate(n.id)} style={{ display:"flex", alignItems:"center", justifyContent:isMobile?"center":"flex-start", gap:isMobile?5:10, padding:isMobile?"8px 10px":"9px 16px", margin:isMobile?0:"1px 8px", borderRadius:8, cursor:"pointer", fontSize:isMobile?11:14, border:"none", background:page===n.id?d.accentSoft:"none", color:page===n.id?d.accentHover:d.text2, minWidth:isMobile?74:"auto", width:isMobile?"auto":"calc(100% - 16px)", textAlign:"left", flexDirection:isMobile?"column":"row", boxShadow:!isMobile&&page===n.id?`inset 3px 0 0 ${d.accent}`:"none" }}>
+    <button key={n.id} onClick={()=>n.id==="log" ? handleNavigateToLog() : navigate(n.id)} style={{ display:"flex", alignItems:"center", justifyContent:isMobile?"center":"flex-start", gap:isMobile?5:10, padding:isMobile?"8px 10px":"9px 16px", margin:isMobile?0:"1px 8px", borderRadius:8, cursor:"pointer", fontSize:isMobile?11:14, border:"none", background:page===n.id?d.accentSoft:"none", color:page===n.id?d.accentHover:d.text2, minWidth:isMobile?74:"auto", width:isMobile?"auto":"calc(100% - 16px)", textAlign:"left", flexDirection:isMobile?"column":"row", boxShadow:!isMobile&&page===n.id?`inset 3px 0 0 ${d.accent}`:"none" }}>
       {n.icon}<span>{isMobile ? n.label.replace("Start Workout","Start").replace("Personal Records","PRs").replace("Body Weight","Weight") : n.label}</span>
     </button>
   );
@@ -753,7 +789,7 @@ function MainApp({ session, d, dark, toggleDark }) {
         ) : (
           <>
             {page==="dashboard"  && <Dashboard workouts={workouts} prs={prs} bwLog={bwLog} allEx={allEx} navigate={navigate} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
-            {page==="log"        && <LogWorkout logState={logState} setLogState={setLogState} workoutStarted={workoutStarted} setWorkoutStarted={setWorkoutStarted} prs={prs} workouts={workouts} allEx={allEx} workoutTypes={workoutTypes} typeLabels={typeLabels} saveCustomEx={handleSaveCustomEx} submit={handleSubmitWorkout} showToast={showToast} isMobile={isMobile} d={d} />}
+            {page==="log"        && <LogWorkout logState={logState} setLogState={setLogState} workoutStarted={workoutStarted} setWorkoutStarted={setWorkoutStarted} prs={prs} workouts={workouts} allEx={allEx} workoutTypes={workoutTypes} typeLabels={typeLabels} saveCustomEx={handleSaveCustomEx} submit={handleSubmitWorkout} onCancel={handleCancelWorkout} todayDay={todayDay} showToast={showToast} isMobile={isMobile} d={d} />}
             {page==="history"    && <History workouts={workouts} prs={prs} allEx={allEx} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
             {page==="prs"        && <PRs prs={prs} workouts={workouts} allEx={allEx} d={d} />}
             {page==="bodyweight" && <BodyWeight bwLog={bwLog} saveBw={handleSaveBw} deleteBw={handleDeleteBw} showToast={showToast} isMobile={isMobile} d={d} />}
@@ -1057,7 +1093,7 @@ function RestTimer({ d }) {
 }
 
 // START WORKOUT
-function LogWorkout({ logState, setLogState, workoutStarted, setWorkoutStarted, prs, workouts, allEx, workoutTypes, typeLabels, saveCustomEx, submit, showToast, isMobile, d }) {
+function LogWorkout({ logState, setLogState, workoutStarted, setWorkoutStarted, prs, workouts, allEx, workoutTypes, typeLabels, saveCustomEx, submit, onCancel, todayDay, showToast, isMobile, d }) {
   const [showExModal, setShowExModal]   = useState(false);
   const [showCustModal, setShowCustModal] = useState(false);
   const [showTimer, setShowTimer] = useState(() => localStorage.getItem("il_show_timer") === "true");
@@ -1106,11 +1142,6 @@ function LogWorkout({ logState, setLogState, workoutStarted, setWorkoutStarted, 
     showToast("Workout started");
   }
 
-  function cancelWorkout() {
-    setLogState({ type:workoutTypes[0] || "push", exercises:[], notes:"", date:new Date().toISOString().slice(0,10) });
-    setWorkoutStarted(false);
-  }
-
   return (
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, marginBottom:showTimer?12:20 }}>
@@ -1119,7 +1150,7 @@ function LogWorkout({ logState, setLogState, workoutStarted, setWorkoutStarted, 
           <p style={{...hs(d).sub,marginBottom:0}}>{workoutStarted ? "Add exercises as you go" : "Set up the session, then start lifting"}</p>
         </div>
         <div style={{ display:"flex", gap:8 }}>
-          {workoutStarted&&<button style={{...hs(d).btnSm, background:d.surface2, color:d.text2}} onClick={cancelWorkout}>Cancel</button>}
+          {workoutStarted&&<button style={{...hs(d).btnSm, background:d.surface2, color:d.text2}} onClick={onCancel}>Cancel</button>}
           <button style={{...hs(d).btnSm, background:showTimer?d.accentSoft:d.surface2, color:showTimer?d.accentHover:d.text2}} onClick={toggleTimer}>{showTimer ? "Hide Timer" : "Timer"}</button>
         </div>
       </div>
@@ -1135,6 +1166,15 @@ function LogWorkout({ logState, setLogState, workoutStarted, setWorkoutStarted, 
           <div><label style={hs(d).label}>Date</label><input style={hs(d).input} type="date" value={logState.date} onChange={e=>setLogState({...logState,date:e.target.value})}/></div>
           <div><label style={hs(d).label}>Session Notes</label><input style={hs(d).input} type="text" placeholder="How did it feel?" value={logState.notes} onChange={e=>setLogState({...logState,notes:e.target.value})}/></div>
         </div>
+        {!workoutStarted&&todayDay&&todayDay.type!=="rest"&&(
+          <div style={{ display:"flex", alignItems:"center", gap:10, background:d.accentSoft, border:`1px solid ${d.accent}44`, borderRadius:8, padding:"10px 14px", marginTop:14, fontSize:13 }}>
+            <span style={{ fontSize:18 }}>📅</span>
+            <div>
+              <span style={{ fontWeight:700, color:d.accentHover }}>{todayDay.day}: {typeLabel(todayDay.type, typeLabels)} Day</span>
+              <span style={{ color:d.text2, marginLeft:6 }}>{logState.exercises.length > 0 ? `${logState.exercises.length} exercises pre-loaded from your split` : "Rest day — no exercises scheduled"}</span>
+            </div>
+          </div>
+        )}
         {!workoutStarted&&(
           <button style={{...hs(d).btn,background:d.accent,color:d.accentText,width:"100%",justifyContent:"center",padding:14,fontSize:15,marginTop:16}} onClick={startWorkout}>
             Start Workout
