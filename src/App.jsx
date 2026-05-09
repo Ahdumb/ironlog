@@ -663,11 +663,13 @@ function MainApp({ session, d, dark, toggleDark }) {
   }
 
   async function handleDeleteWorkout(id) {
+    const removed = workouts.find(w => w.id === id);
+    setWorkouts(prev => prev.filter(w => w.id !== id));
     try {
       await deleteWorkoutFromDb(id);
-      setWorkouts(prev => prev.filter(w => w.id !== id));
       showToast("Workout deleted");
     } catch (error) {
+      if (removed) setWorkouts(prev => [...prev, removed].sort((a, b) => b.date - a.date));
       showToast(error.message || "Error deleting workout");
     }
   }
@@ -702,10 +704,12 @@ function MainApp({ session, d, dark, toggleDark }) {
   }
 
   async function handleDeleteBw(id) {
+    const removed = bwLog.find(b => b.id === id);
+    setBwLog(prev => prev.filter(b => b.id !== id));
     try {
       await deleteBodyWeight(id);
-      setBwLog(prev => prev.filter(b=>b.id!==id));
     } catch (error) {
+      if (removed) setBwLog(prev => [...prev, removed].sort((a, b) => a.date - b.date));
       showToast(error.message || "Error deleting weight");
     }
   }
@@ -806,9 +810,9 @@ function MainApp({ session, d, dark, toggleDark }) {
 
 // DASHBOARD
 function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeLabels, isMobile, d }) {
-  const totalVol = workouts.reduce((a,w)=>a+w.exercises.reduce((b,e)=>b+e.sets.reduce((c,s)=>c+s.reps*s.weight,0),0),0);
-  const recent = [...workouts].sort((a,b)=>b.date-a.date).slice(0,3);
-  const latestBW = bwLog.length ? [...bwLog].sort((a,b)=>b.date-a.date)[0] : null;
+  const totalVol = useMemo(() => workouts.reduce((a,w)=>a+w.exercises.reduce((b,e)=>b+e.sets.reduce((c,s)=>c+s.reps*s.weight,0),0),0), [workouts]);
+  const recent = useMemo(() => [...workouts].sort((a,b)=>b.date-a.date).slice(0,3), [workouts]);
+  const latestBW = useMemo(() => bwLog.length ? [...bwLog].sort((a,b)=>b.date-a.date)[0] : null, [bwLog]);
   return (
     <div>
       <h1 style={hs(d).h1}>Dashboard</h1>
@@ -990,8 +994,7 @@ function WorkoutEntry({ w, prs, allEx, onDelete, typeLabels, isMobile, d }) {
       <div style={{ padding:"12px 16px", background:d.surface, display:"flex", alignItems:isMobile?"flex-start":"center", justifyContent:"space-between", gap:10, cursor:"pointer" }} onClick={()=>setOpen(!open)}>
         <div>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            <span style={{ fontWeight:600, fontSize:14, color:d.text }}>{typeLabel(w.type, typeLabels)}</span>
-            <span style={{...badgeStyle(w.type),display:"inline-flex",padding:"2px 8px",borderRadius:20,fontSize:11,fontWeight:600}}>{typeLabel(w.type, typeLabels)}</span>
+            <span style={{...badgeStyle(w.type),display:"inline-flex",padding:"2px 8px",borderRadius:20,fontSize:13,fontWeight:700}}>{typeLabel(w.type, typeLabels)}</span>
           </div>
           <div style={{ fontSize:12, color:d.text3, marginTop:2 }}>{fmtDateFull(w.date)} / {w.exercises.length} exercises / {totalVol.toLocaleString()} lbs</div>
         </div>
