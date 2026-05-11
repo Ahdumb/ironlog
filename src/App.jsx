@@ -296,8 +296,8 @@ function badgeStyle(type) {
 }
 
 // THEMES
-const LIGHT = { bg:"#f8f7f4",surface:"#ffffff",surface2:"#f2f1ed",border:"#e4e2db",text:"#1a1a18",text2:"#5c5c58",text3:"#9c9c97",accent:"#2563EB",accentHover:"#1D4ED8",accentSoft:"#EFF6FF",accentGlow:"#60A5FA",accentText:"#ffffff",secondary:"#F97316",secondaryHover:"#EA580C",secondarySoft:"#FFF7ED",warning:"#D97706",warningBg:"#FFFBEB",danger:"#DC2626",dangerBg:"#FEF2F2",green:"#16A34A",greenBg:"#F0FDF4",gridLine:"rgba(0,0,0,.05)" };
-const DARK  = { bg:"#0c0c0b",surface:"#161615",surface2:"#1e1e1c",border:"#2c2c2a",text:"#f0ede8",text2:"#a8a49e",text3:"#6b6b67",accent:"#3B82F6",accentHover:"#2563EB",accentSoft:"#0f1e3a",accentGlow:"#93C5FD",accentText:"#ffffff",secondary:"#FB923C",secondaryHover:"#F97316",secondarySoft:"#2c1506",warning:"#FBBF24",warningBg:"#1c1400",danger:"#F87171",dangerBg:"#2d0b0b",green:"#4ADE80",greenBg:"#052e16",gridLine:"rgba(255,255,255,.04)" };
+const LIGHT = { bg:"#f8f7f4",surface:"#ffffff",surface2:"#f2f1ed",border:"#e4e2db",text:"#1a1a18",text2:"#5c5c58",text3:"#9c9c97",accent:"#2563EB",accentHover:"#1D4ED8",accentSoft:"#EFF6FF",accentGlow:"#60A5FA",accentText:"#ffffff",secondary:"#FB923C",secondaryHover:"#F97316",secondarySoft:"#FFF7ED",warning:"#D97706",warningBg:"#FFFBEB",danger:"#DC2626",dangerBg:"#FEF2F2",green:"#16A34A",greenBg:"#F0FDF4",gridLine:"rgba(0,0,0,.05)" };
+const DARK  = { bg:"#0c0c0b",surface:"#161615",surface2:"#1e1e1c",border:"#2c2c2a",text:"#f0ede8",text2:"#a8a49e",text3:"#6b6b67",accent:"#3B82F6",accentHover:"#2563EB",accentSoft:"#0f1e3a",accentGlow:"#93C5FD",accentText:"#ffffff",secondary:"#FDBA74",secondaryHover:"#FB923C",secondarySoft:"#2c1a06",warning:"#FBBF24",warningBg:"#1c1400",danger:"#F87171",dangerBg:"#2d0b0b",green:"#4ADE80",greenBg:"#052e16",gridLine:"rgba(255,255,255,.04)" };
 
 function hs(d) {
   return {
