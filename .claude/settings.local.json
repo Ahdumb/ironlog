@@ -24,7 +24,9 @@
       "Bash(npx vite *)",
       "Bash(vercel --prod --yes)",
       "Bash(npm run *)",
-      "Bash(xargs -I{} git show {}:.env)"
+      "Bash(xargs -I{} git show {}:.env)",
+      "Bash(python3 .claude/skills/ui-ux-pro-max/scripts/search.py \"fitness gym tracker mobile dashboard dark mode\" --design-system -p \"PeakSet\")",
+      "Bash(py .claude/skills/ui-ux-pro-max/scripts/search.py \"fitness gym tracker mobile dashboard dark mode\" --design-system -p \"PeakSet\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\adamh\\Downloads",

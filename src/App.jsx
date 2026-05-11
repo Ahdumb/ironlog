@@ -296,23 +296,23 @@ function badgeStyle(type) {
 }
 
 // THEMES
-const LIGHT = { bg:"#fafaf9",surface:"#ffffff",surface2:"#f4f4f2",border:"#e8e6e0",text:"#1a1a18",text2:"#6b6b67",text3:"#9c9c97",accent:"#00AEEF",accentHover:"#0077B6",accentSoft:"#E6F7FF",accentGlow:"#38D9FF",accentText:"#ffffff",warning:"#FFB020",warningBg:"#fff6df",danger:"#c0392b",dangerBg:"#fdf0ee",green:"#0077B6",greenBg:"#E6F7FF",gridLine:"rgba(0,0,0,.04)" };
-const DARK  = { bg:"#0f0f0e",surface:"#1a1a18",surface2:"#252523",border:"#333330",text:"#f0ede8",text2:"#a8a49e",text3:"#6b6b67",accent:"#38D9FF",accentHover:"#00AEEF",accentSoft:"#102f3a",accentGlow:"#38D9FF",accentText:"#061015",warning:"#FFB020",warningBg:"#332713",danger:"#ff7f73",dangerBg:"#351b19",green:"#38D9FF",greenBg:"#102f3a",gridLine:"rgba(255,255,255,.04)" };
+const LIGHT = { bg:"#f8f7f4",surface:"#ffffff",surface2:"#f2f1ed",border:"#e4e2db",text:"#1a1a18",text2:"#5c5c58",text3:"#9c9c97",accent:"#EA580C",accentHover:"#C2410C",accentSoft:"#FFF7ED",accentGlow:"#FB923C",accentText:"#ffffff",warning:"#D97706",warningBg:"#FFFBEB",danger:"#DC2626",dangerBg:"#FEF2F2",green:"#16A34A",greenBg:"#F0FDF4",gridLine:"rgba(0,0,0,.05)" };
+const DARK  = { bg:"#0c0c0a",surface:"#161614",surface2:"#1e1e1b",border:"#2c2c29",text:"#f0ede8",text2:"#a8a49e",text3:"#6b6b67",accent:"#FB923C",accentHover:"#F97316",accentSoft:"#2c1506",accentGlow:"#FDBA74",accentText:"#1a0800",warning:"#FBBF24",warningBg:"#1c1400",danger:"#F87171",dangerBg:"#2d0b0b",green:"#4ADE80",greenBg:"#052e16",gridLine:"rgba(255,255,255,.04)" };
 
 function hs(d) {
   return {
-    h1:   { fontSize:26, fontWeight:700, letterSpacing:"-0.5px", marginBottom:4, color:d.text },
-    h3:   { fontSize:15, fontWeight:600, marginBottom:12, color:d.text },
-    sub:  { color:d.text3, fontSize:14, marginBottom:24 },
-    card: { background:d.surface, border:`1px solid ${d.border}`, borderRadius:12, padding:20 },
-    btn:  { display:"inline-flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:8, fontSize:13, fontWeight:600, cursor:"pointer", border:"none" },
-    btnSm:{ display:"inline-flex", alignItems:"center", background:d.surface2, color:d.text2, border:`1px solid ${d.border}`, borderRadius:6, padding:"5px 10px", fontSize:12, cursor:"pointer" },
-    input:{ fontFamily:"inherit", fontSize:14, border:`1px solid ${d.border}`, borderRadius:8, padding:"8px 12px", background:d.surface, color:d.text, outline:"none", width:"100%", boxSizing:"border-box" },
-    label:{ fontSize:12, fontWeight:600, color:d.text2, display:"block", marginBottom:4 },
-    overlay:{ position:"fixed", inset:0, background:"rgba(0,0,0,.5)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center" },
-    modal:{ background:d.surface, borderRadius:16, padding:28, width:540, maxWidth:"95vw", maxHeight:"88vh", overflowY:"auto" },
-    th:   { textAlign:"left", padding:"7px 10px", fontSize:11, fontWeight:600, color:d.text3, textTransform:"uppercase", letterSpacing:".06em", borderBottom:`1px solid ${d.border}` },
-    td:   { padding:"8px 10px", borderBottom:`1px solid ${d.border}20`, color:d.text },
+    h1:   { fontSize:28, fontWeight:800, letterSpacing:"-0.8px", marginBottom:4, color:d.text, lineHeight:1.15 },
+    h3:   { fontSize:14, fontWeight:700, marginBottom:12, color:d.text },
+    sub:  { color:d.text3, fontSize:13, marginBottom:24, lineHeight:1.5 },
+    card: { background:d.surface, border:`1px solid ${d.border}`, borderRadius:16, padding:20, boxShadow:"0 1px 4px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04)" },
+    btn:  { display:"inline-flex", alignItems:"center", gap:6, padding:"9px 18px", borderRadius:10, fontSize:13, fontWeight:600, cursor:"pointer", border:"none", transition:"opacity 0.15s, background 0.15s" },
+    btnSm:{ display:"inline-flex", alignItems:"center", background:d.surface2, color:d.text2, border:`1px solid ${d.border}`, borderRadius:8, padding:"5px 11px", fontSize:12, cursor:"pointer", transition:"background 0.15s" },
+    input:{ fontFamily:"inherit", fontSize:14, border:`1px solid ${d.border}`, borderRadius:10, padding:"10px 14px", background:d.surface, color:d.text, outline:"none", width:"100%", boxSizing:"border-box", transition:"border-color 0.15s" },
+    label:{ fontSize:12, fontWeight:600, color:d.text2, display:"block", marginBottom:5, letterSpacing:"0.01em" },
+    overlay:{ position:"fixed", inset:0, background:"rgba(0,0,0,.55)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", backdropFilter:"blur(3px)" },
+    modal:{ background:d.surface, borderRadius:20, padding:28, width:540, maxWidth:"95vw", maxHeight:"88vh", overflowY:"auto", boxShadow:"0 24px 64px rgba(0,0,0,.2)" },
+    th:   { textAlign:"left", padding:"9px 12px", fontSize:11, fontWeight:600, color:d.text3, textTransform:"uppercase", letterSpacing:".07em", borderBottom:`1px solid ${d.border}` },
+    td:   { padding:"10px 12px", borderBottom:`1px solid ${d.border}25`, color:d.text },
   };
 }
 
@@ -344,7 +344,7 @@ export default function App() {
   }, [d.bg]);
 
   if (loading) return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:d.bg, color:d.text, fontSize:15, fontFamily:"-apple-system,sans-serif" }}>
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100vh", background:d.bg, color:d.text, fontSize:15, fontFamily:"'Inter',-apple-system,sans-serif" }}>
       Loading...
     </div>
   );
@@ -359,7 +359,7 @@ export default function App() {
 }
 
 // AUTH PAGE
-function parseProfile({ profileName, weight, heightFt, heightIn, splitId }) {
+function parseProfile({ profileName, weight, heightFt, heightIn, splitId, experience, goal }) {
   const name = profileName.trim();
   const weightLbs = Number.parseFloat(weight);
   const feet = Number.parseInt(heightFt, 10);
@@ -370,6 +370,8 @@ function parseProfile({ profileName, weight, heightFt, heightIn, splitId }) {
   if (!Number.isFinite(feet) || feet <= 0) return { error:"Enter your height in feet." };
   if (!Number.isFinite(inches) || inches < 0 || inches > 11) return { error:"Height inches must be 0 through 11." };
   if (!splitId) return { error:"Choose a workout split." };
+  if (!experience) return { error:"Select your experience level." };
+  if (!goal) return { error:"Select your goal." };
 
   return {
     data:{
@@ -377,6 +379,8 @@ function parseProfile({ profileName, weight, heightFt, heightIn, splitId }) {
       weight_lbs:Math.round(weightLbs * 10) / 10,
       height_in:(feet * 12) + inches,
       split_id:splitId,
+      experience,
+      goal,
       onboarding_complete:true,
     },
   };
@@ -390,7 +394,9 @@ function AuthPage({ d, dark, toggleDark }) {
   const [weight, setWeight] = useState("");
   const [heightFt, setHeightFt] = useState("");
   const [heightIn, setHeightIn] = useState("");
-  const [splitId, setSplitId] = useState("ppl");
+  const [splitId, setSplitId]     = useState("ppl");
+  const [experience, setExperience] = useState("");
+  const [goal, setGoal]           = useState("");
   const [signupStep, setSignupStep] = useState(0);
   const [error, setError]   = useState("");
   const [loading, setLoading] = useState(false);
@@ -410,8 +416,12 @@ function AuthPage({ d, dark, toggleDark }) {
       if (pass.length < 6) return "Password must be at least 6 characters.";
     }
     if (signupStep === 1) {
-      const profile = parseProfile({ profileName, weight, heightFt, heightIn, splitId });
-      if (profile.error && profile.error !== "Choose a workout split.") return profile.error;
+      const profile = parseProfile({ profileName, weight, heightFt, heightIn, splitId, experience:"placeholder", goal:"placeholder" });
+      if (profile.error && profile.error !== "Choose a workout split." && profile.error !== "Select your experience level." && profile.error !== "Select your goal.") return profile.error;
+    }
+    if (signupStep === 3) {
+      if (!experience) return "Select your experience level.";
+      if (!goal) return "Select your goal.";
     }
     return "";
   }
@@ -441,7 +451,7 @@ function AuthPage({ d, dark, toggleDark }) {
       const { error } = await supabase.auth.signInWithPassword({ email, password:pass });
       if (error) setError("Invalid email or password.");
     } else {
-      const profile = parseProfile({ profileName, weight, heightFt, heightIn, splitId });
+      const profile = parseProfile({ profileName, weight, heightFt, heightIn, splitId, experience, goal });
       if (profile.error) {
         setError(profile.error);
         setLoading(false);
@@ -459,7 +469,7 @@ function AuthPage({ d, dark, toggleDark }) {
   }
 
   function handlePrimary() {
-    if (mode === "signup" && signupStep < 2) {
+    if (mode === "signup" && signupStep < 3) {
       nextSignupStep();
       return;
     }
@@ -467,7 +477,7 @@ function AuthPage({ d, dark, toggleDark }) {
   }
 
   return (
-    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100dvh", background:d.bg, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", padding:24, boxSizing:"border-box" }}>
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100dvh", background:d.bg, fontFamily:"'Inter',-apple-system,BlinkMacSystemFont,sans-serif", padding:24, boxSizing:"border-box" }}>
       <div style={{ width:mode==="signup"?820:400, maxWidth:"100%", display:"grid", gridTemplateColumns:mode==="signup"?"repeat(auto-fit,minmax(320px,1fr))":"1fr", overflow:"hidden", background:d.surface, border:`1px solid ${d.border}`, borderRadius:22, boxShadow:"0 24px 80px rgba(0,0,0,.14)" }}>
         {mode==="signup"&&(
           <div style={{ padding:34, background:`linear-gradient(145deg, ${d.accentHover}, ${d.accent})`, color:"#fff", display:"flex", flexDirection:"column", justifyContent:"space-between", minHeight:520 }}>
@@ -571,6 +581,37 @@ function AuthPage({ d, dark, toggleDark }) {
               </div>
             )}
 
+            {mode==="signup"&&signupStep===3&&(
+              <div style={{ marginBottom:18 }}>
+                <label style={hs(d).label}>Experience Level</label>
+                <div style={{ display:"grid", gap:8, marginBottom:18 }}>
+                  {[
+                    { id:"beginner",     name:"New to the Gym",  desc:"Just getting started and building foundations." },
+                    { id:"intermediate", name:"Intermediate",    desc:"1–3 years of consistent training." },
+                    { id:"expert",       name:"Expert",          desc:"3+ years, familiar with programming and progressive overload." },
+                  ].map(opt=>(
+                    <button key={opt.id} onClick={()=>setExperience(opt.id)} style={{ border:`1px solid ${experience===opt.id?d.accent:d.border}`, background:experience===opt.id?d.accentSoft:d.surface, color:d.text, borderRadius:10, padding:"10px 12px", textAlign:"left", cursor:"pointer" }}>
+                      <div style={{ fontSize:13, fontWeight:800, color:experience===opt.id?d.accentHover:d.text }}>{opt.name}</div>
+                      <div style={{ fontSize:11, color:d.text3, marginTop:2 }}>{opt.desc}</div>
+                    </button>
+                  ))}
+                </div>
+                <label style={hs(d).label}>Your Goal</label>
+                <div style={{ display:"grid", gap:8 }}>
+                  {[
+                    { id:"muscle",      name:"Build Muscle",  desc:"Focused on hypertrophy and getting stronger." },
+                    { id:"lose_weight", name:"Lose Weight",   desc:"Fat loss while maintaining muscle mass." },
+                    { id:"both",        name:"Both",          desc:"Body recomposition — gain muscle and lose fat." },
+                  ].map(opt=>(
+                    <button key={opt.id} onClick={()=>setGoal(opt.id)} style={{ border:`1px solid ${goal===opt.id?d.accent:d.border}`, background:goal===opt.id?d.accentSoft:d.surface, color:d.text, borderRadius:10, padding:"10px 12px", textAlign:"left", cursor:"pointer" }}>
+                      <div style={{ fontSize:13, fontWeight:800, color:goal===opt.id?d.accentHover:d.text }}>{opt.name}</div>
+                      <div style={{ fontSize:11, color:d.text3, marginTop:2 }}>{opt.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {error && <div style={{ background:d.dangerBg, color:d.danger, borderRadius:8, padding:"10px 14px", fontSize:13, marginBottom:14 }}>{error}</div>}
             <div style={{ display:"flex", gap:10 }}>
               {mode==="signup"&&signupStep>0&&(
@@ -579,7 +620,7 @@ function AuthPage({ d, dark, toggleDark }) {
                 </button>
               )}
               <button onClick={handlePrimary} disabled={loading} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, flex:1, justifyContent:"center", padding:12, fontSize:14, opacity:loading?.6:1 }}>
-                {loading ? "..." : mode==="login" ? "Sign In" : signupStep<2 ? "Continue" : "Create Account"}
+                {loading ? "..." : mode==="login" ? "Sign In" : signupStep<3 ? "Continue" : "Create Account"}
               </button>
             </div>
           </>
@@ -600,13 +641,15 @@ function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
   const [weight, setWeight] = useState(meta.weight_lbs || "");
   const [heightFt, setHeightFt] = useState(meta.height_in ? Math.floor(meta.height_in / 12) : "");
   const [heightIn, setHeightIn] = useState(meta.height_in ? meta.height_in % 12 : "");
-  const [splitId, setSplitId] = useState(meta.split_id || "ppl");
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [splitId, setSplitId]       = useState(meta.split_id || "ppl");
+  const [experience, setExperience] = useState(meta.experience || "");
+  const [goal, setGoal]             = useState(meta.goal || "");
+  const [error, setError]           = useState("");
+  const [saving, setSaving]         = useState(false);
 
   async function saveProfile() {
     setError("");
-    const profile = parseProfile({ profileName, weight, heightFt, heightIn, splitId });
+    const profile = parseProfile({ profileName, weight, heightFt, heightIn, splitId, experience, goal });
     if (profile.error) {
       setError(profile.error);
       return;
@@ -625,7 +668,7 @@ function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
   }
 
   return (
-    <div style={{ minHeight:"100dvh", display:"flex", alignItems:"center", justifyContent:"center", background:d.bg, color:d.text, fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", padding:24, boxSizing:"border-box" }}>
+    <div style={{ minHeight:"100dvh", display:"flex", alignItems:"center", justifyContent:"center", background:d.bg, color:d.text, fontFamily:"'Inter',-apple-system,BlinkMacSystemFont,sans-serif", padding:24, boxSizing:"border-box" }}>
       <div style={{ width:720, background:d.surface, border:`1px solid ${d.border}`, borderRadius:22, padding:34, boxShadow:"0 24px 80px rgba(0,0,0,.14)" }}>
         <div style={{ display:"flex", justifyContent:"space-between", gap:16, alignItems:"flex-start", marginBottom:24 }}>
           <div>
@@ -654,6 +697,39 @@ function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
               <div style={{ fontSize:12, color:d.text3, marginTop:3, lineHeight:1.35 }}>{split.desc}</div>
             </button>
           ))}
+        </div>
+
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16, marginBottom:16 }}>
+          <div>
+            <label style={hs(d).label}>Experience Level</label>
+            <div style={{ display:"grid", gap:8 }}>
+              {[
+                { id:"beginner",     name:"New to the Gym",  desc:"Just getting started." },
+                { id:"intermediate", name:"Intermediate",    desc:"1–3 years training." },
+                { id:"expert",       name:"Expert",          desc:"3+ years, advanced." },
+              ].map(opt=>(
+                <button key={opt.id} onClick={()=>setExperience(opt.id)} style={{ border:`1px solid ${experience===opt.id?d.accent:d.border}`, background:experience===opt.id?d.accentSoft:d.surface, color:d.text, borderRadius:10, padding:"10px 12px", textAlign:"left", cursor:"pointer" }}>
+                  <div style={{ fontWeight:800, fontSize:13, color:experience===opt.id?d.accentHover:d.text }}>{opt.name}</div>
+                  <div style={{ fontSize:11, color:d.text3, marginTop:2 }}>{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label style={hs(d).label}>Your Goal</label>
+            <div style={{ display:"grid", gap:8 }}>
+              {[
+                { id:"muscle",      name:"Build Muscle",  desc:"Hypertrophy and strength." },
+                { id:"lose_weight", name:"Lose Weight",   desc:"Fat loss, keep muscle." },
+                { id:"both",        name:"Both",          desc:"Body recomposition." },
+              ].map(opt=>(
+                <button key={opt.id} onClick={()=>setGoal(opt.id)} style={{ border:`1px solid ${goal===opt.id?d.accent:d.border}`, background:goal===opt.id?d.accentSoft:d.surface, color:d.text, borderRadius:10, padding:"10px 12px", textAlign:"left", cursor:"pointer" }}>
+                  <div style={{ fontWeight:800, fontSize:13, color:goal===opt.id?d.accentHover:d.text }}>{opt.name}</div>
+                  <div style={{ fontSize:11, color:d.text3, marginTop:2 }}>{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {error && <div style={{ background:d.dangerBg, color:d.danger, borderRadius:8, padding:"10px 14px", fontSize:13, marginBottom:14 }}>{error}</div>}
@@ -859,6 +935,7 @@ function MainApp({ session, d, dark, toggleDark }) {
     { id:"log",        label:"Start Workout",    icon:<PlusIcon /> },
     { id:"history",    label:"History",          icon:<ClockIcon /> },
     { id:"prs",        label:"Personal Records", icon:<TrendIcon /> },
+    { id:"musclemap",  label:"Muscle Map",       icon:<BodyIcon /> },
     { id:"bodyweight", label:"Body Weight",      icon:<ScaleIcon /> },
     { id:"routines",   label:"Routines",         icon:<ListIcon /> },
     { id:"social",     label:"Social",           icon:<UsersIcon />, badge: pendingRequestCount || null },
@@ -866,7 +943,7 @@ function MainApp({ session, d, dark, toggleDark }) {
     { id:"profile",    label:"Profile",          icon:<UserIcon /> },
   ];
   const navButton = (n) => (
-    <button key={n.id} onClick={()=>n.id==="log" ? handleNavigateToLog() : navigate(n.id)} style={{ display:"flex", alignItems:"center", justifyContent:isMobile?"center":"flex-start", gap:isMobile?5:10, padding:isMobile?"8px 10px":"9px 16px", margin:isMobile?0:"1px 8px", borderRadius:8, cursor:"pointer", fontSize:isMobile?11:14, border:"none", background:page===n.id?d.accentSoft:"none", color:page===n.id?d.accentHover:d.text2, minWidth:isMobile?74:"auto", width:isMobile?"auto":"calc(100% - 16px)", textAlign:"left", flexDirection:isMobile?"column":"row", boxShadow:!isMobile&&page===n.id?`inset 3px 0 0 ${d.accent}`:"none", position:"relative" }}>
+    <button key={n.id} onClick={()=>n.id==="log" ? handleNavigateToLog() : navigate(n.id)} style={{ display:"flex", alignItems:"center", justifyContent:isMobile?"center":"flex-start", gap:isMobile?5:10, padding:isMobile?"8px 10px":"9px 14px", margin:isMobile?0:"2px 8px", borderRadius:10, cursor:"pointer", fontSize:isMobile?10:13, fontWeight:page===n.id?600:500, border:"none", background:page===n.id?d.accentSoft:"transparent", color:page===n.id?d.accent:d.text2, minWidth:isMobile?66:"auto", width:isMobile?"auto":"calc(100% - 16px)", textAlign:"left", flexDirection:isMobile?"column":"row", boxShadow:!isMobile&&page===n.id?`inset 3px 0 0 ${d.accent}`:"none", position:"relative", transition:"background 0.15s, color 0.15s" }}>
       {n.icon}
       <span>{isMobile ? n.label.replace("Start Workout","Start").replace("Personal Records","PRs").replace("Body Weight","Weight") : n.label}</span>
       {n.badge ? <span style={{ background:d.danger, color:"#fff", borderRadius:20, fontSize:10, fontWeight:700, padding:"1px 5px", marginLeft:"auto" }}>{n.badge}</span> : null}
@@ -874,18 +951,18 @@ function MainApp({ session, d, dark, toggleDark }) {
   );
 
   return (
-    <div style={{ display:"flex", flexDirection:isMobile?"column":"row", height:"100vh", overflow:"hidden", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", fontSize:15, color:d.text, background:d.bg }}>
-      <aside style={{ width:220, minWidth:220, background:d.surface, borderRight:`1px solid ${d.border}`, display:isMobile?"none":"flex", flexDirection:"column" }}>
-          <div style={{ padding:"22px 20px 14px" }}>
-            <img src="/logo.png" alt="PeakSet" style={{ height:44, width:"auto", maxWidth:"100%", display:"block" }} />
-          <div style={{ fontSize:11, color:d.text3, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{profile.profile_name || session.user.email}</div>
+    <div style={{ display:"flex", flexDirection:isMobile?"column":"row", height:"100vh", overflow:"hidden", fontFamily:"'Inter',-apple-system,BlinkMacSystemFont,sans-serif", fontSize:15, color:d.text, background:d.bg }}>
+      <aside style={{ width:224, minWidth:224, background:d.surface, borderRight:`1px solid ${d.border}`, display:isMobile?"none":"flex", flexDirection:"column" }}>
+        <div style={{ padding:"20px 16px 12px" }}>
+          <img src="/logo.png" alt="PeakSet" style={{ height:40, width:"auto", maxWidth:"100%", display:"block" }} />
+          <div style={{ fontSize:11, color:d.text3, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontWeight:500 }}>{profile.profile_name || session.user.email}</div>
         </div>
-        <div style={{ padding:"4px 12px 6px", fontSize:11, fontWeight:600, color:d.text3, letterSpacing:".08em", textTransform:"uppercase" }}>Menu</div>
+        <div style={{ padding:"2px 8px 4px", fontSize:10, fontWeight:700, color:d.text3, letterSpacing:".1em", textTransform:"uppercase" }}>Navigation</div>
         {navItems.map(navButton)}
-        <div style={{ marginTop:"auto", padding:12, borderTop:`1px solid ${d.border}`, display:"flex", flexDirection:"column", gap:8 }}>
-          <div style={{ background:d.greenBg, color:d.green, fontSize:12, fontWeight:600, padding:"8px 12px", borderRadius:8, display:"flex", alignItems:"center", gap:6 }}><strong>{streak}</strong> day streak</div>
+        <div style={{ marginTop:"auto", padding:10, borderTop:`1px solid ${d.border}`, display:"flex", flexDirection:"column", gap:6 }}>
+          {streak > 0 && <div style={{ background:d.accentSoft, color:d.accent, fontSize:12, fontWeight:700, padding:"8px 12px", borderRadius:10, display:"flex", alignItems:"center", gap:6 }}>🔥 <strong>{streak}</strong> day streak</div>}
           <button onClick={toggleDark} style={{ background:d.surface2, border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 12px", fontSize:12, fontWeight:600, cursor:"pointer", color:d.text2 }}>
-            {dark ? "Light Mode" : "Dark Mode"}
+            {dark ? "☀️ Light Mode" : "🌙 Dark Mode"}
           </button>
           <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 12px", fontSize:12, fontWeight:600, cursor:"pointer", color:d.text3 }}>
             Sign Out
@@ -914,9 +991,9 @@ function MainApp({ session, d, dark, toggleDark }) {
       <main style={{ flex:1, overflowY:"auto", padding:isMobile?16:32 }}>
         {dataLoading ? (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", color:d.text3 }}>
-            <div>
-              <div style={{ fontSize:32, textAlign:"center", marginBottom:12 }}>...</div>
-              <div style={{ fontSize:14 }}>Loading your data...</div>
+            <div style={{ textAlign:"center" }}>
+              <div style={{ width:36, height:36, border:`3px solid ${d.border}`, borderTopColor:d.accent, borderRadius:"50%", margin:"0 auto 14px" }}/>
+              <div style={{ fontSize:13, fontWeight:500 }}>Loading your data...</div>
             </div>
           </div>
         ) : (
@@ -925,6 +1002,7 @@ function MainApp({ session, d, dark, toggleDark }) {
             {page==="log"        && <LogWorkout logState={logState} setLogState={setLogState} workoutStarted={workoutStarted} setWorkoutStarted={setWorkoutStarted} prs={prs} workouts={workouts} allEx={allEx} workoutTypes={workoutTypes} typeLabels={typeLabels} saveCustomEx={handleSaveCustomEx} submit={handleSubmitWorkout} onCancel={handleCancelWorkout} todayDay={todayDay} showToast={showToast} isMobile={isMobile} d={d} />}
             {page==="history"    && <History workouts={workouts} prs={prs} allEx={allEx} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
             {page==="prs"        && <PRs prs={prs} workouts={workouts} allEx={allEx} d={d} />}
+            {page==="musclemap"  && <MuscleHeatmap prs={prs} allEx={allEx} bwLog={bwLog} d={d} />}
             {page==="bodyweight" && <BodyWeight bwLog={bwLog} saveBw={handleSaveBw} deleteBw={handleDeleteBw} showToast={showToast} isMobile={isMobile} d={d} />}
             {page==="routines"   && <Routines splitTemplates={SPLIT_TEMPLATES} selectedSplitId={selectedSplitId} setSelectedSplitId={setSelectedSplitId} customRoutine={customRoutine} setCustomRoutine={setCustomRoutine} routine={activeRoutine} prs={prs} allEx={allEx} navigate={navigate} showToast={showToast} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
             {page==="social"     && <Social userId={userId} profile={profile} friendships={friendships} setFriendships={setFriendships} showToast={showToast} isMobile={isMobile} d={d} />}
@@ -934,7 +1012,7 @@ function MainApp({ session, d, dark, toggleDark }) {
         )}
       </main>
 
-      {toast && <div style={{ position:"fixed", bottom:isMobile?16:24, right:isMobile?16:24, left:isMobile?16:"auto", background:d.accentHover, color:"#ffffff", padding:"10px 18px", borderRadius:8, fontSize:13, fontWeight:500, zIndex:999, boxShadow:`0 10px 30px ${d.accent}55`, textAlign:isMobile?"center":"left" }}>{toast}</div>}
+      {toast && <div style={{ position:"fixed", bottom:isMobile?16:28, right:isMobile?16:28, left:isMobile?16:"auto", background:d.text, color:d.bg, padding:"11px 20px", borderRadius:12, fontSize:13, fontWeight:500, zIndex:999, boxShadow:"0 8px 32px rgba(0,0,0,.22)", textAlign:isMobile?"center":"left", maxWidth:320, letterSpacing:"0.01em" }}>{toast}</div>}
 
       {friendAddTarget && (
         <div style={hs(d).overlay} onClick={()=>setFriendAddTarget(null)}>
@@ -1232,9 +1310,9 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, userId, i
 
 function StatCard({ val, label, d }) {
   return (
-    <div style={hs(d).card}>
-      <div style={{ fontSize:24, fontWeight:700, letterSpacing:"-1px", color:d.text }}>{val}</div>
-      <div style={{ fontSize:11, color:d.text3, marginTop:3, fontWeight:600, textTransform:"uppercase", letterSpacing:".06em" }}>{label}</div>
+    <div style={{...hs(d).card, textAlign:"center", padding:"16px 12px"}}>
+      <div style={{ fontSize:26, fontWeight:800, letterSpacing:"-1px", color:d.accent, lineHeight:1.1 }}>{val}</div>
+      <div style={{ fontSize:10, color:d.text3, marginTop:5, fontWeight:600, textTransform:"uppercase", letterSpacing:".08em" }}>{label}</div>
     </div>
   );
 }
@@ -2167,6 +2245,198 @@ function Empty({ icon, title, desc, d }) {
   );
 }
 
+// MUSCLE HEATMAP
+const MUSCLE_MAP = {
+  chest:      { label:"Chest",       muscles:["Chest","Upper Chest","Lower Chest","Chest/Triceps"] },
+  shoulders:  { label:"Shoulders",   muscles:["Shoulders","Front Delts","Side Delts"] },
+  triceps:    { label:"Triceps",     muscles:["Triceps"] },
+  biceps:     { label:"Biceps",      muscles:["Biceps","Brachialis","Lats/Biceps"] },
+  lats:       { label:"Lats",        muscles:["Lats"] },
+  back:       { label:"Mid Back",    muscles:["Back","Mid Back"] },
+  traps:      { label:"Traps",       muscles:["Traps"] },
+  reardelts:  { label:"Rear Delts",  muscles:["Rear Delts"] },
+  quads:      { label:"Quads",       muscles:["Quads","Glutes/Quads"] },
+  hamstrings: { label:"Hamstrings",  muscles:["Hamstrings","Glutes/Hams","Glutes/Hamstrings"] },
+  glutes:     { label:"Glutes",      muscles:["Glutes"] },
+  calves:     { label:"Calves",      muscles:["Calves"] },
+  abs:        { label:"Abs",         muscles:["Abs","Core"] },
+};
+
+function computeMuscleScores(prs, allEx, bwLog) {
+  const bw = bwLog.length ? bwLog[bwLog.length - 1].weight : null;
+  const scores = {};
+  for (const [key, grp] of Object.entries(MUSCLE_MAP)) {
+    let bestOrm = 0, bestEx = null;
+    for (const ex of allEx) {
+      if (!grp.muscles.includes(ex.muscle)) continue;
+      const pr = prs[ex.id];
+      if (!pr) continue;
+      const orm = Math.round(pr.weight * (1 + pr.reps / 30));
+      if (orm > bestOrm) { bestOrm = orm; bestEx = ex; }
+    }
+    if (bestOrm > 0) scores[key] = { orm: bestOrm, ratio: bw ? bestOrm / bw : bestOrm, bestEx, bw };
+  }
+  const sorted = Object.entries(scores).sort((a, b) => a[1].ratio - b[1].ratio);
+  sorted.forEach(([k], i) => { scores[k].rank = i; scores[k].total = sorted.length; });
+  return scores;
+}
+
+function heatColor(rank, total) {
+  const t = total <= 1 ? 0.5 : rank / (total - 1);
+  const hue = Math.round(240 - t * 220);
+  const sat = Math.round(55 + t * 35);
+  const lit = Math.round(52 - t * 12);
+  return `hsl(${hue},${sat}%,${lit}%)`;
+}
+
+function MuscleHeatmap({ prs, allEx, bwLog, d }) {
+  const [view, setView]       = useState("front");
+  const [selected, setSelected] = useState(null);
+  const scores = useMemo(() => computeMuscleScores(prs, allEx, bwLog), [prs, allEx, bwLog]);
+  const bw = bwLog.length ? bwLog[bwLog.length - 1].weight : null;
+  const sel = selected ? scores[selected] : null;
+
+  function mc(key) {
+    const s = scores[key];
+    const on = selected === key;
+    return {
+      fill: s ? heatColor(s.rank, s.total) : d.text3 + "25",
+      opacity: s ? (on ? 1 : 0.78) : 0.15,
+      cursor: s ? "pointer" : "default",
+      stroke: on ? "#fff" : "none",
+      strokeWidth: 2,
+      onClick: s ? () => setSelected(on ? null : key) : undefined,
+    };
+  }
+
+  const skin = { fill: d.text + "14" };
+  const ranked = Object.entries(scores).sort((a, b) => b[1].rank - a[1].rank);
+
+  const frontSvg = (
+    <svg viewBox="0 0 140 285" style={{ width: "100%", maxWidth: 180 }}>
+      {/* silhouette */}
+      <ellipse cx="70" cy="22" rx="18" ry="20" {...skin}/>
+      <rect x="63" y="41" width="14" height="13" rx="3" {...skin}/>
+      <rect x="43" y="52" width="54" height="10" rx="4" {...skin}/>
+      <rect x="48" y="60" width="44" height="57" rx="8" {...skin}/>
+      <rect x="50" y="114" width="40" height="44" rx="5" {...skin}/>
+      <ellipse cx="70" cy="157" rx="24" ry="9" {...skin}/>
+      <ellipse cx="39" cy="91" rx="9" ry="26" {...skin}/>
+      <ellipse cx="101" cy="91" rx="9" ry="26" {...skin}/>
+      <ellipse cx="35" cy="141" rx="7" ry="21" {...skin}/>
+      <ellipse cx="105" cy="141" rx="7" ry="21" {...skin}/>
+      <ellipse cx="54" cy="193" rx="19" ry="32" {...skin}/>
+      <ellipse cx="86" cy="193" rx="19" ry="32" {...skin}/>
+      <ellipse cx="54" cy="249" rx="12" ry="24" {...skin}/>
+      <ellipse cx="86" cy="249" rx="12" ry="24" {...skin}/>
+      {/* muscles */}
+      <ellipse cx="70" cy="83" rx="22" ry="15" {...mc("chest")}/>
+      <ellipse cx="46" cy="67" rx="13" ry="10" {...mc("shoulders")}/>
+      <ellipse cx="94" cy="67" rx="13" ry="10" {...mc("shoulders")}/>
+      <ellipse cx="39" cy="93" rx="8" ry="19" {...mc("biceps")}/>
+      <ellipse cx="101" cy="93" rx="8" ry="19" {...mc("biceps")}/>
+      <ellipse cx="70" cy="124" rx="15" ry="21" {...mc("abs")}/>
+      <ellipse cx="54" cy="193" rx="16" ry="26" {...mc("quads")}/>
+      <ellipse cx="86" cy="193" rx="16" ry="26" {...mc("quads")}/>
+      <ellipse cx="54" cy="249" rx="9" ry="16" {...mc("calves")}/>
+      <ellipse cx="86" cy="249" rx="9" ry="16" {...mc("calves")}/>
+    </svg>
+  );
+
+  const backSvg = (
+    <svg viewBox="0 0 140 285" style={{ width: "100%", maxWidth: 180 }}>
+      {/* silhouette */}
+      <ellipse cx="70" cy="22" rx="18" ry="20" {...skin}/>
+      <rect x="63" y="41" width="14" height="13" rx="3" {...skin}/>
+      <rect x="43" y="52" width="54" height="10" rx="4" {...skin}/>
+      <rect x="48" y="60" width="44" height="57" rx="8" {...skin}/>
+      <rect x="50" y="114" width="40" height="44" rx="5" {...skin}/>
+      <ellipse cx="70" cy="157" rx="24" ry="9" {...skin}/>
+      <ellipse cx="39" cy="91" rx="9" ry="26" {...skin}/>
+      <ellipse cx="101" cy="91" rx="9" ry="26" {...skin}/>
+      <ellipse cx="35" cy="141" rx="7" ry="21" {...skin}/>
+      <ellipse cx="105" cy="141" rx="7" ry="21" {...skin}/>
+      <ellipse cx="54" cy="193" rx="19" ry="32" {...skin}/>
+      <ellipse cx="86" cy="193" rx="19" ry="32" {...skin}/>
+      <ellipse cx="54" cy="249" rx="12" ry="24" {...skin}/>
+      <ellipse cx="86" cy="249" rx="12" ry="24" {...skin}/>
+      {/* muscles */}
+      <ellipse cx="70" cy="68" rx="20" ry="11" {...mc("traps")}/>
+      <ellipse cx="46" cy="67" rx="13" ry="10" {...mc("reardelts")}/>
+      <ellipse cx="94" cy="67" rx="13" ry="10" {...mc("reardelts")}/>
+      <ellipse cx="39" cy="93" rx="8" ry="19" {...mc("triceps")}/>
+      <ellipse cx="101" cy="93" rx="8" ry="19" {...mc("triceps")}/>
+      <ellipse cx="50" cy="103" rx="13" ry="22" {...mc("lats")}/>
+      <ellipse cx="90" cy="103" rx="13" ry="22" {...mc("lats")}/>
+      <ellipse cx="70" cy="108" rx="12" ry="17" {...mc("back")}/>
+      <ellipse cx="54" cy="168" rx="18" ry="13" {...mc("glutes")}/>
+      <ellipse cx="86" cy="168" rx="18" ry="13" {...mc("glutes")}/>
+      <ellipse cx="54" cy="200" rx="16" ry="26" {...mc("hamstrings")}/>
+      <ellipse cx="86" cy="200" rx="16" ry="26" {...mc("hamstrings")}/>
+      <ellipse cx="54" cy="249" rx="9" ry="16" {...mc("calves")}/>
+      <ellipse cx="86" cy="249" rx="9" ry="16" {...mc("calves")}/>
+    </svg>
+  );
+
+  return (
+    <div>
+      <h1 style={hs(d).h1}>Muscle Strength Map</h1>
+      <p style={hs(d).sub}>{bw ? `Ranked by estimated 1RM ÷ ${bw} lb bodyweight` : "Log your bodyweight to see strength ratios"}</p>
+
+      <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+        {["front","back"].map(v => (
+          <button key={v} style={{...hs(d).btn, ...(view===v ? {background:d.accent,color:d.accentText,border:`1px solid ${d.accent}`} : {})}} onClick={()=>setView(v)}>
+            {v==="front" ? "Front" : "Back"}
+          </button>
+        ))}
+      </div>
+
+      {Object.keys(scores).length === 0 ? (
+        <Empty icon="💪" title="No PR data yet" desc="Log some workouts to build your muscle strength map." d={d}/>
+      ) : (
+        <div style={{ display:"flex", gap:20, flexWrap:"wrap", alignItems:"flex-start" }}>
+          <div style={{ flex:"0 0 auto" }}>
+            {view === "front" ? frontSvg : backSvg}
+            <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:d.text3, marginTop:4, maxWidth:180 }}>
+              <span>Weakest</span><span>Strongest</span>
+            </div>
+            <div style={{ height:6, borderRadius:3, background:"linear-gradient(to right,hsl(240,55%,52%),hsl(120,65%,44%),hsl(20,90%,46%))", maxWidth:180, marginTop:2 }}/>
+          </div>
+
+          <div style={{ flex:1, minWidth:200 }}>
+            {sel && (
+              <div style={{...hs(d).card, marginBottom:12, borderLeft:`4px solid ${heatColor(sel.rank,sel.total)}`}}>
+                <div style={{ fontWeight:700, fontSize:15, marginBottom:6 }}>{MUSCLE_MAP[selected].label}</div>
+                <div style={{ fontSize:13, color:d.text2, marginBottom:2 }}>Best: {sel.bestEx?.name}</div>
+                <div style={{ fontSize:13, color:d.text2, marginBottom:2 }}>Est. 1RM: <strong>{sel.orm} lbs</strong></div>
+                {bw && <div style={{ fontSize:13, color:d.text2, marginBottom:2 }}>Ratio: <strong>{sel.ratio.toFixed(2)}× bodyweight</strong></div>}
+                <div style={{ fontSize:12, color:d.text3 }}>Rank #{sel.total - sel.rank} of {sel.total} muscle groups</div>
+              </div>
+            )}
+
+            <div style={hs(d).card}>
+              <div style={{ fontWeight:600, fontSize:13, marginBottom:10, color:d.text2 }}>Strength Ranking</div>
+              {ranked.map(([key, s], i) => (
+                <div key={key} onClick={() => setSelected(selected===key?null:key)}
+                  style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 0",
+                    borderBottom: i < ranked.length-1 ? `1px solid ${d.border}` : "none",
+                    cursor:"pointer", background: selected===key ? d.accent+"10" : "transparent",
+                    borderRadius:4, paddingLeft:4 }}>
+                  <div style={{ width:10, height:10, borderRadius:"50%", background:heatColor(s.rank,s.total), flexShrink:0 }}/>
+                  <div style={{ flex:1, fontSize:13, fontWeight:500 }}>{MUSCLE_MAP[key].label}</div>
+                  <div style={{ fontSize:12, color:d.text2, fontWeight:600 }}>
+                    {bw ? `${s.ratio.toFixed(2)}×` : `${s.orm} lbs`}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ONE REP MAX CALCULATOR
 const ORM_FORMULAS = [
   { name: "Epley",    fn: (w, r) => r === 1 ? w : Math.round(w * (1 + r / 30)) },
@@ -2300,3 +2570,4 @@ function ScaleIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fi
 function UserIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>; }
 function UsersIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>; }
 function CalcIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>; }
+function BodyIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="4" r="2"/><path d="M12 7v6"/><path d="M8 10h8"/><path d="M10 13l-2 7"/><path d="M14 13l2 7"/></svg>; }

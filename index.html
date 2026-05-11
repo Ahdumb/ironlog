@@ -12,6 +12,19 @@
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PeakSet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      * { box-sizing: border-box; }
+      body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-font-smoothing: antialiased; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      input:focus { border-color: #EA580C !important; box-shadow: 0 0 0 3px rgba(234,88,12,.12) !important; }
+      button:active { opacity: 0.85; }
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(128,128,128,.3); border-radius: 3px; }
+    </style>
   </head>
   <body style="margin:0;background:#0f0f0e;">
     <div id="root"></div>
