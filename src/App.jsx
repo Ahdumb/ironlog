@@ -862,6 +862,7 @@ function MainApp({ session, d, dark, toggleDark }) {
     { id:"bodyweight", label:"Body Weight",      icon:<ScaleIcon /> },
     { id:"routines",   label:"Routines",         icon:<ListIcon /> },
     { id:"social",     label:"Social",           icon:<UsersIcon />, badge: pendingRequestCount || null },
+    { id:"calculator", label:"1RM Calculator",   icon:<CalcIcon /> },
     { id:"profile",    label:"Profile",          icon:<UserIcon /> },
   ];
   const navButton = (n) => (
@@ -927,6 +928,7 @@ function MainApp({ session, d, dark, toggleDark }) {
             {page==="bodyweight" && <BodyWeight bwLog={bwLog} saveBw={handleSaveBw} deleteBw={handleDeleteBw} showToast={showToast} isMobile={isMobile} d={d} />}
             {page==="routines"   && <Routines splitTemplates={SPLIT_TEMPLATES} selectedSplitId={selectedSplitId} setSelectedSplitId={setSelectedSplitId} customRoutine={customRoutine} setCustomRoutine={setCustomRoutine} routine={activeRoutine} prs={prs} allEx={allEx} navigate={navigate} showToast={showToast} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
             {page==="social"     && <Social userId={userId} profile={profile} friendships={friendships} setFriendships={setFriendships} showToast={showToast} isMobile={isMobile} d={d} />}
+            {page==="calculator" && <OneRepMax d={d} />}
             {page==="profile"    && <Profile profile={profile} email={session.user.email} prs={prs} bwLog={bwLog} allEx={allEx} selectedSplitId={selectedSplitId} userId={userId} isMobile={isMobile} d={d} />}
           </>
         )}
@@ -2165,6 +2167,130 @@ function Empty({ icon, title, desc, d }) {
   );
 }
 
+// ONE REP MAX CALCULATOR
+const ORM_FORMULAS = [
+  { name: "Epley",    fn: (w, r) => r === 1 ? w : Math.round(w * (1 + r / 30)) },
+  { name: "Brzycki",  fn: (w, r) => r === 1 ? w : Math.round(w * (36 / (37 - r))) },
+  { name: "Lander",   fn: (w, r) => r === 1 ? w : Math.round((100 * w) / (101.3 - 2.67123 * r)) },
+  { name: "Lombardi", fn: (w, r) => r === 1 ? w : Math.round(w * Math.pow(r, 0.10)) },
+];
+
+const PCT_ROWS = [
+  { pct: 100, reps: "1"   },
+  { pct: 95,  reps: "2"   },
+  { pct: 90,  reps: "3"   },
+  { pct: 85,  reps: "4–5" },
+  { pct: 80,  reps: "6"   },
+  { pct: 75,  reps: "8"   },
+  { pct: 70,  reps: "10"  },
+  { pct: 65,  reps: "12"  },
+  { pct: 60,  reps: "15"  },
+  { pct: 50,  reps: "20"  },
+];
+
+function OneRepMax({ d }) {
+  const [weight, setWeight] = useState("");
+  const [reps, setReps]     = useState("");
+
+  const w = parseFloat(weight);
+  const r = parseInt(reps, 10);
+  const valid = w > 0 && r >= 1 && r <= 30;
+  const epley = valid ? ORM_FORMULAS[0].fn(w, r) : null;
+
+  return (
+    <div>
+      <h1 style={hs(d).h1}>1RM Calculator</h1>
+      <p style={hs(d).sub}>Estimate your one-rep max from any set</p>
+
+      <div style={{...hs(d).card, marginBottom: 20}}>
+        <div style={{ display:"flex", gap:12, flexWrap:"wrap" }}>
+          <div style={{ flex:1, minWidth:120 }}>
+            <label style={{ display:"block", fontSize:12, color:d.text2, marginBottom:4, fontWeight:600 }}>Weight (lbs)</label>
+            <input
+              type="number"
+              min="1"
+              placeholder="e.g. 225"
+              value={weight}
+              onChange={e => setWeight(e.target.value)}
+              style={{...hs(d).input, width:"100%"}}
+            />
+          </div>
+          <div style={{ flex:1, minWidth:120 }}>
+            <label style={{ display:"block", fontSize:12, color:d.text2, marginBottom:4, fontWeight:600 }}>Reps completed</label>
+            <input
+              type="number"
+              min="1"
+              max="30"
+              placeholder="e.g. 5"
+              value={reps}
+              onChange={e => setReps(e.target.value)}
+              style={{...hs(d).input, width:"100%"}}
+            />
+          </div>
+        </div>
+      </div>
+
+      {valid && (
+        <>
+          <div style={{...hs(d).card, marginBottom:20, textAlign:"center"}}>
+            <div style={{ fontSize:13, color:d.text2, marginBottom:4 }}>Estimated 1RM (Epley)</div>
+            <div style={{ fontSize:48, fontWeight:800, color:d.accent, lineHeight:1 }}>{epley}</div>
+            <div style={{ fontSize:14, color:d.text3, marginTop:4 }}>lbs</div>
+          </div>
+
+          <div style={{...hs(d).card, marginBottom:20}}>
+            <h3 style={{...hs(d).h3, marginBottom:12}}>Formula Comparison</h3>
+            <div style={{ overflowX:"auto" }}>
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+                <thead>
+                  <tr>
+                    {ORM_FORMULAS.map(f => <th key={f.name} style={hs(d).th}>{f.name}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    {ORM_FORMULAS.map(f => (
+                      <td key={f.name} style={{...hs(d).td, fontWeight:700, textAlign:"center"}}>
+                        {f.fn(w, r)} lbs
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style={{...hs(d).card}}>
+            <h3 style={{...hs(d).h3, marginBottom:12}}>Training Percentages</h3>
+            <div style={{ overflowX:"auto" }}>
+              <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13 }}>
+                <thead>
+                  <tr>
+                    {["%","Weight","Rep range"].map(h => <th key={h} style={hs(d).th}>{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {PCT_ROWS.map(({ pct, reps: repRange }) => {
+                    const w2 = Math.round(epley * pct / 100);
+                    const isMax = pct === 100;
+                    return (
+                      <tr key={pct} style={isMax ? { background: d.accent + "18" } : {}}>
+                        <td style={{...hs(d).td, fontWeight: isMax ? 700 : 500, color: isMax ? d.accent : d.text}}>{pct}%</td>
+                        <td style={{...hs(d).td, fontWeight:700}}>{w2} lbs</td>
+                        <td style={{...hs(d).td, color:d.text2}}>{repRange}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function GridIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>; }
 function PlusIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>; }
 function ClockIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>; }
@@ -2173,3 +2299,4 @@ function ListIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fi
 function ScaleIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6l9-3 9 3"/><path d="M3 6v14a1 1 0 001 1h16a1 1 0 001-1V6"/><path d="M12 3v18"/></svg>; }
 function UserIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>; }
 function UsersIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>; }
+function CalcIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>; }
