@@ -23,7 +23,8 @@
       "Bash(npm install *)",
       "Bash(npx vite *)",
       "Bash(vercel --prod --yes)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(xargs -I{} git show {}:.env)"
     ],
     "additionalDirectories": [
       "C:\\Users\\adamh\\Downloads",

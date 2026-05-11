@@ -4,11 +4,12 @@
 -- ============================================================
 
 create table if not exists public.push_subscriptions (
-  id            uuid    primary key default gen_random_uuid(),
-  user_id       uuid    not null references auth.users(id) on delete cascade,
-  subscription  jsonb   not null,
-  reminder_hour integer not null check (reminder_hour >= 0 and reminder_hour <= 23),
-  created_at    timestamptz default now(),
+  id              uuid    primary key default gen_random_uuid(),
+  user_id         uuid    not null references auth.users(id) on delete cascade,
+  subscription    jsonb   not null,
+  reminder_hour   integer not null check (reminder_hour >= 0 and reminder_hour <= 23),
+  custom_messages text[]  not null default '{}',
+  created_at      timestamptz default now(),
   unique(user_id)
 );
 

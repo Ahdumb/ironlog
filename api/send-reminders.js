@@ -7,7 +7,10 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY
 );
 
-const MESSAGES = [
+const DEFAULT_MESSAGES = [
+  "Hit the gym yet? 🏋️",
+  "Can't wait for chest day 💪",
+  "Let's get to work 🔥",
   "Time to hit a lift 💪",
   "The gym is calling 🏋️",
   "Don't skip today's session!",
@@ -30,7 +33,7 @@ export default async function handler(req, res) {
 
   const { data: subs, error } = await supabase
     .from("push_subscriptions")
-    .select("*")
+    .select("id, subscription, custom_messages")
     .eq("reminder_hour", currentHour);
 
   if (error) {
@@ -44,11 +47,12 @@ export default async function handler(req, res) {
   await Promise.allSettled(
     (subs || []).map(async sub => {
       try {
+        const pool = sub.custom_messages?.length ? sub.custom_messages : DEFAULT_MESSAGES;
         await webpush.sendNotification(
           JSON.parse(sub.subscription),
           JSON.stringify({
             title: "PeakSet",
-            body: MESSAGES[Math.floor(Math.random() * MESSAGES.length)],
+            body: pool[Math.floor(Math.random() * pool.length)],
           })
         );
         sent++;

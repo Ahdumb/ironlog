@@ -988,6 +988,8 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, userId, i
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifPermission, setNotifPermission] = useState(() => typeof Notification !== "undefined" ? Notification.permission : "default");
   const [notifMsg, setNotifMsg] = useState("");
+  const [customMessages, setCustomMessages] = useState([]);
+  const [newMsg, setNewMsg] = useState("");
 
   useEffect(() => {
     if (!supportsNotif) return;
@@ -995,6 +997,7 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, userId, i
       .then(({ data }) => {
         if (data) {
           setNotifSub(data);
+          setCustomMessages(data.custom_messages || []);
           const localH = ((data.reminder_hour - new Date().getTimezoneOffset() / 60) % 24 + 24) % 24;
           setNotifHour(Math.round(localH));
         }
@@ -1013,7 +1016,7 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, userId, i
       const sub = await sw.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY) });
       const utcHour = Math.round((notifHour + new Date().getTimezoneOffset() / 60 + 24) % 24);
       const { data, error } = await supabase.from("push_subscriptions")
-        .upsert({ user_id: userId, subscription: JSON.stringify(sub.toJSON()), reminder_hour: utcHour }, { onConflict: "user_id" })
+        .upsert({ user_id: userId, subscription: JSON.stringify(sub.toJSON()), reminder_hour: utcHour, custom_messages: customMessages }, { onConflict: "user_id" })
         .select().single();
       if (error) { setNotifMsg("Failed to save reminder."); return; }
       setNotifSub(data);
@@ -1043,10 +1046,26 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, userId, i
       const reg = await navigator.serviceWorker.getRegistration("/sw.js");
       if (reg) { const ps = await reg.pushManager.getSubscription(); if (ps) await ps.unsubscribe(); }
       setNotifSub(null);
+      setCustomMessages([]);
       setNotifMsg("Reminders disabled.");
     } finally {
       setNotifLoading(false);
     }
+  }
+
+  async function addCustomMsg() {
+    const msg = newMsg.trim();
+    if (!msg) return;
+    const updated = [...customMessages, msg];
+    setCustomMessages(updated);
+    setNewMsg("");
+    if (notifSub) await supabase.from("push_subscriptions").update({ custom_messages: updated }).eq("id", notifSub.id);
+  }
+
+  async function removeCustomMsg(idx) {
+    const updated = customMessages.filter((_, i) => i !== idx);
+    setCustomMessages(updated);
+    if (notifSub) await supabase.from("push_subscriptions").update({ custom_messages: updated }).eq("id", notifSub.id);
   }
 
   return (
@@ -1154,6 +1173,34 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, userId, i
               )}
             </div>
             {notifMsg && <div style={{ fontSize:12, color:d.text3, marginTop:10 }}>{notifMsg}</div>}
+
+            {(notifSub || !notifSub) && (
+              <div style={{ marginTop:18, borderTop:`1px solid ${d.border}`, paddingTop:16 }}>
+                <div style={{ fontSize:13, fontWeight:600, color:d.text2, marginBottom:6 }}>Notification Messages</div>
+                <div style={{ fontSize:12, color:d.text3, marginBottom:12 }}>
+                  {customMessages.length ? "Picks randomly from your list below." : "Using defaults — add your own messages to replace them."}
+                </div>
+                <div style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:12 }}>
+                  {customMessages.map((msg, i) => (
+                    <div key={i} style={{ display:"flex", alignItems:"center", gap:8, background:d.surface2, border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 10px" }}>
+                      <span style={{ flex:1, fontSize:13, color:d.text }}>{msg}</span>
+                      <button onClick={() => removeCustomMsg(i)} style={{ background:"none", border:"none", cursor:"pointer", color:d.text3, fontSize:16, lineHeight:1, padding:"0 2px" }}>×</button>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display:"flex", gap:8 }}>
+                  <input
+                    value={newMsg}
+                    onChange={e => setNewMsg(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && addCustomMsg()}
+                    placeholder='e.g. "Hit the gym yet? 🏋️"'
+                    maxLength={120}
+                    style={{ flex:1, background:d.surface2, color:d.text, border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 10px", fontSize:13 }}
+                  />
+                  <button onClick={addCustomMsg} disabled={!newMsg.trim()} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, padding:"7px 16px", opacity:newMsg.trim()?1:.5 }}>Add</button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
