@@ -2195,7 +2195,7 @@ function OneRepMax({ d }) {
   const w = parseFloat(weight);
   const r = parseInt(reps, 10);
   const valid = w > 0 && r >= 1 && r <= 30;
-  const epley = valid ? ORM_FORMULAS[0].fn(w, r) : null;
+  const orm = valid ? Math.round(ORM_FORMULAS.reduce((sum, f) => sum + f.fn(w, r), 0) / ORM_FORMULAS.length) : null;
 
   return (
     <div>
@@ -2233,8 +2233,8 @@ function OneRepMax({ d }) {
       {valid && (
         <>
           <div style={{...hs(d).card, marginBottom:20, textAlign:"center"}}>
-            <div style={{ fontSize:13, color:d.text2, marginBottom:4 }}>Estimated 1RM (Epley)</div>
-            <div style={{ fontSize:48, fontWeight:800, color:d.accent, lineHeight:1 }}>{epley}</div>
+            <div style={{ fontSize:13, color:d.text2, marginBottom:4 }}>Estimated 1RM</div>
+            <div style={{ fontSize:48, fontWeight:800, color:d.accent, lineHeight:1 }}>{orm}</div>
             <div style={{ fontSize:14, color:d.text3, marginTop:4 }}>lbs</div>
           </div>
 
@@ -2271,7 +2271,7 @@ function OneRepMax({ d }) {
                 </thead>
                 <tbody>
                   {PCT_ROWS.map(({ pct, reps: repRange }) => {
-                    const w2 = Math.round(epley * pct / 100);
+                    const w2 = Math.round(orm * pct / 100);
                     const isMax = pct === 100;
                     return (
                       <tr key={pct} style={isMax ? { background: d.accent + "18" } : {}}>
