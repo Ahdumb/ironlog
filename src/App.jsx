@@ -296,8 +296,8 @@ function badgeStyle(type) {
 }
 
 // THEMES
-const LIGHT = { bg:"#f8f7f4",surface:"#ffffff",surface2:"#f2f1ed",border:"#e4e2db",text:"#1a1a18",text2:"#5c5c58",text3:"#9c9c97",accent:"#EA580C",accentHover:"#C2410C",accentSoft:"#FFF7ED",accentGlow:"#FB923C",accentText:"#ffffff",warning:"#D97706",warningBg:"#FFFBEB",danger:"#DC2626",dangerBg:"#FEF2F2",green:"#16A34A",greenBg:"#F0FDF4",gridLine:"rgba(0,0,0,.05)" };
-const DARK  = { bg:"#0c0c0a",surface:"#161614",surface2:"#1e1e1b",border:"#2c2c29",text:"#f0ede8",text2:"#a8a49e",text3:"#6b6b67",accent:"#FB923C",accentHover:"#F97316",accentSoft:"#2c1506",accentGlow:"#FDBA74",accentText:"#1a0800",warning:"#FBBF24",warningBg:"#1c1400",danger:"#F87171",dangerBg:"#2d0b0b",green:"#4ADE80",greenBg:"#052e16",gridLine:"rgba(255,255,255,.04)" };
+const LIGHT = { bg:"#f8f7f4",surface:"#ffffff",surface2:"#f2f1ed",border:"#e4e2db",text:"#1a1a18",text2:"#5c5c58",text3:"#9c9c97",accent:"#2563EB",accentHover:"#1D4ED8",accentSoft:"#EFF6FF",accentGlow:"#60A5FA",accentText:"#ffffff",secondary:"#F97316",secondaryHover:"#EA580C",secondarySoft:"#FFF7ED",warning:"#D97706",warningBg:"#FFFBEB",danger:"#DC2626",dangerBg:"#FEF2F2",green:"#16A34A",greenBg:"#F0FDF4",gridLine:"rgba(0,0,0,.05)" };
+const DARK  = { bg:"#0c0c0b",surface:"#161615",surface2:"#1e1e1c",border:"#2c2c2a",text:"#f0ede8",text2:"#a8a49e",text3:"#6b6b67",accent:"#3B82F6",accentHover:"#2563EB",accentSoft:"#0f1e3a",accentGlow:"#93C5FD",accentText:"#ffffff",secondary:"#FB923C",secondaryHover:"#F97316",secondarySoft:"#2c1506",warning:"#FBBF24",warningBg:"#1c1400",danger:"#F87171",dangerBg:"#2d0b0b",green:"#4ADE80",greenBg:"#052e16",gridLine:"rgba(255,255,255,.04)" };
 
 function hs(d) {
   return {
@@ -960,7 +960,7 @@ function MainApp({ session, d, dark, toggleDark }) {
         <div style={{ padding:"2px 8px 4px", fontSize:10, fontWeight:700, color:d.text3, letterSpacing:".1em", textTransform:"uppercase" }}>Navigation</div>
         {navItems.map(navButton)}
         <div style={{ marginTop:"auto", padding:10, borderTop:`1px solid ${d.border}`, display:"flex", flexDirection:"column", gap:6 }}>
-          {streak > 0 && <div style={{ background:d.accentSoft, color:d.accent, fontSize:12, fontWeight:700, padding:"8px 12px", borderRadius:10, display:"flex", alignItems:"center", gap:6 }}>🔥 <strong>{streak}</strong> day streak</div>}
+          {streak > 0 && <div style={{ background:d.secondarySoft, color:d.secondary, fontSize:12, fontWeight:700, padding:"8px 12px", borderRadius:10, display:"flex", alignItems:"center", gap:6 }}>🔥 <strong>{streak}</strong> day streak</div>}
           <button onClick={toggleDark} style={{ background:d.surface2, border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 12px", fontSize:12, fontWeight:600, cursor:"pointer", color:d.text2 }}>
             {dark ? "☀️ Light Mode" : "🌙 Dark Mode"}
           </button>
@@ -1311,7 +1311,7 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, userId, i
 function StatCard({ val, label, d }) {
   return (
     <div style={{...hs(d).card, textAlign:"center", padding:"16px 12px"}}>
-      <div style={{ fontSize:26, fontWeight:800, letterSpacing:"-1px", color:d.accent, lineHeight:1.1 }}>{val}</div>
+      <div style={{ fontSize:26, fontWeight:800, letterSpacing:"-1px", color:d.secondary, lineHeight:1.1 }}>{val}</div>
       <div style={{ fontSize:10, color:d.text3, marginTop:5, fontWeight:600, textTransform:"uppercase", letterSpacing:".08em" }}>{label}</div>
     </div>
   );
