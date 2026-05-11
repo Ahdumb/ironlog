@@ -11,10 +11,23 @@
       "Bash(Copy-Item \"C:\\\\Users\\\\adamh\\\\Downloads\\\\Peakset Logo.png\" \"C:\\\\Users\\\\adamh\\\\Projects\\\\Code folder\\\\ironlog\\\\public\\\\logo.png\")",
       "Bash(Copy-Item \"C:\\\\Users\\\\adamh\\\\Downloads\\\\Peakset Logo.png\" \"C:\\\\Users\\\\adamh\\\\Projects\\\\Code folder\\\\ironlog\\\\public\\\\apple-touch-icon.png\")",
       "Bash(Copy-Item \"C:\\\\Users\\\\adamh\\\\Downloads\\\\Peakset Logo.png\" \"C:\\\\Users\\\\adamh\\\\Projects\\\\Code folder\\\\ironlog\\\\public\\\\icon-192.png\")",
-      "Bash(Copy-Item \"C:\\\\Users\\\\adamh\\\\Downloads\\\\Peakset Logo.png\" \"C:\\\\Users\\\\adamh\\\\Projects\\\\Code folder\\\\ironlog\\\\public\\\\icon-512.png\")"
+      "Bash(Copy-Item \"C:\\\\Users\\\\adamh\\\\Downloads\\\\Peakset Logo.png\" \"C:\\\\Users\\\\adamh\\\\Projects\\\\Code folder\\\\ironlog\\\\public\\\\icon-512.png\")",
+      "Bash(vercel --version)",
+      "PowerShell(npm install -g vercel)",
+      "PowerShell(Add-Type -AssemblyName System.Drawing; $img = [System.Drawing.Image]::FromFile\\(\"C:\\\\Users\\\\adamh\\\\Downloads\\\\Peakset Logo.png\"\\); \"Width: $\\($img.Width\\), Height: $\\($img.Height\\)\"; $img.Dispose\\(\\))",
+      "PowerShell(Copy-Item \"C:\\\\Users\\\\adamh\\\\Downloads\\\\Peakset Logo2.png\" \"C:\\\\Users\\\\adamh\\\\Projects\\\\Code folder\\\\ironlog\\\\public\\\\logo.png\" -Force)",
+      "PowerShell(Copy-Item \"C:\\\\Users\\\\adamh\\\\Downloads\\\\Peakset logo3.png\" \"C:\\\\Users\\\\adamh\\\\Projects\\\\Code folder\\\\ironlog\\\\public\\\\apple-touch-icon.png\" -Force)",
+      "PowerShell(Copy-Item \"C:\\\\Users\\\\adamh\\\\Downloads\\\\Peakset logo3.png\" \"C:\\\\Users\\\\adamh\\\\Projects\\\\Code folder\\\\ironlog\\\\public\\\\icon-192.png\" -Force)",
+      "PowerShell(Copy-Item \"C:\\\\Users\\\\adamh\\\\Downloads\\\\Peakset logo3.png\" \"C:\\\\Users\\\\adamh\\\\Projects\\\\Code folder\\\\ironlog\\\\public\\\\icon-512.png\" -Force)",
+      "Bash(find \"c:\\\\Users\\\\adamh\\\\Projects\\\\Code folder\\\\ironlog\" -type f \\\\\\( -name \".env*\" -o -name \"vite.config*\" -o -name \"package.json\" \\\\\\) 2>nul | head -20)",
+      "Bash(npm install *)",
+      "Bash(npx vite *)",
+      "Bash(vercel --prod --yes)",
+      "Bash(npm run *)"
     ],
     "additionalDirectories": [
-      "C:\\Users\\adamh\\Downloads"
+      "C:\\Users\\adamh\\Downloads",
+      "c:\\Users\\adamh\\Projects\\Code folder\\ironlog"
     ]
   }
 }

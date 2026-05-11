@@ -1,7 +1,10 @@
 import { supabase } from "./supabase";
 
 function assertOk(error, fallback) {
-  if (error) throw new Error(error.message || fallback);
+  if (error) {
+    if (import.meta.env.DEV) console.error("[db]", error);
+    throw new Error(fallback);
+  }
 }
 
 function normalizeDate(date) {
@@ -188,4 +191,70 @@ export async function saveCustomExercise(userId, ex) {
     .single();
   assertOk(error, "Could not save custom exercise");
   return data;
+}
+
+// ── SOCIAL ──────────────────────────────────────────────────
+
+export async function syncUserProfile(userId, data) {
+  const { error } = await supabase.from("user_profiles").upsert({
+    user_id: userId,
+    profile_name: data.profile_name || "",
+    email: data.email || null,
+    weight_lbs: data.weight_lbs || null,
+    height_in: data.height_in || null,
+    split_id: data.split_id || null,
+    updated_at: new Date().toISOString(),
+  });
+  assertOk(error, "Could not sync profile");
+}
+
+export async function searchUsers(query, currentUserId) {
+  const q = query.trim();
+  if (!q) return [];
+  const [byName, byEmail] = await Promise.all([
+    supabase.from("user_profiles").select("user_id,profile_name,weight_lbs,height_in,split_id").ilike("profile_name", `%${q}%`).neq("user_id", currentUserId).limit(10),
+    supabase.from("user_profiles").select("user_id,profile_name,weight_lbs,height_in,split_id").eq("email", q).neq("user_id", currentUserId).limit(1),
+  ]);
+  if (byName.error) throw new Error("Search failed");
+  const merged = [...(byName.data || [])];
+  for (const r of byEmail.data || []) {
+    if (!merged.find(u => u.user_id === r.user_id)) merged.push(r);
+  }
+  return merged;
+}
+
+export async function fetchUserProfileById(userId) {
+  const { data } = await supabase.from("user_profiles").select("*").eq("user_id", userId).single();
+  return data || null;
+}
+
+export async function fetchUserProfiles(userIds) {
+  if (!userIds.length) return [];
+  const { data, error } = await supabase.from("user_profiles").select("*").in("user_id", userIds);
+  assertOk(error, "Could not load profiles");
+  return data || [];
+}
+
+export async function fetchFriendships(userId) {
+  const { data, error } = await supabase
+    .from("friendships")
+    .select("*")
+    .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`);
+  assertOk(error, "Could not load friendships");
+  return data || [];
+}
+
+export async function sendFriendRequest(requesterId, addresseeId) {
+  const { error } = await supabase.from("friendships").insert({ requester_id: requesterId, addressee_id: addresseeId });
+  assertOk(error, "Could not send friend request");
+}
+
+export async function acceptFriendRequest(friendshipId) {
+  const { error } = await supabase.from("friendships").update({ status: "accepted" }).eq("id", friendshipId);
+  assertOk(error, "Could not accept friend request");
+}
+
+export async function deleteFriendship(friendshipId) {
+  const { error } = await supabase.from("friendships").delete().eq("id", friendshipId);
+  assertOk(error, "Could not remove");
 }

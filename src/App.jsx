@@ -10,32 +10,99 @@ import {
   saveBodyWeight,
   saveCustomExercise,
   saveWorkoutToDb,
+  syncUserProfile,
+  searchUsers,
+  fetchUserProfileById,
+  fetchUserProfiles,
+  fetchFriendships,
+  sendFriendRequest,
+  acceptFriendRequest,
+  deleteFriendship,
 } from "./data";
 Chart.register(...registerables);
 
 // EXERCISES
 const DEFAULT_EXERCISES = [
-  { id:"bench",     name:"Bench Press",           muscle:"Chest",        type:"push" },
-  { id:"incline",   name:"Incline Dumbbell Press",muscle:"Upper Chest",  type:"push" },
-  { id:"ohp",       name:"Overhead Press",        muscle:"Shoulders",    type:"push" },
-  { id:"lateral",   name:"Lateral Raises",        muscle:"Side Delts",   type:"push" },
-  { id:"tricep",    name:"Tricep Pushdown",        muscle:"Triceps",      type:"push" },
-  { id:"dips",      name:"Weighted Dips",          muscle:"Chest/Triceps",type:"push" },
-  { id:"cable_fly", name:"Cable Fly",              muscle:"Chest",        type:"push" },
-  { id:"deadlift",  name:"Deadlift",               muscle:"Back",         type:"pull" },
-  { id:"row",       name:"Barbell Row",            muscle:"Back",         type:"pull" },
-  { id:"pullup",    name:"Pull-ups",               muscle:"Lats",         type:"pull" },
-  { id:"cable_row", name:"Cable Row",              muscle:"Mid Back",     type:"pull" },
-  { id:"curl",      name:"Barbell Curl",           muscle:"Biceps",       type:"pull" },
-  { id:"hammer",    name:"Hammer Curls",           muscle:"Brachialis",   type:"pull" },
-  { id:"face_pull", name:"Face Pull",              muscle:"Rear Delts",   type:"pull" },
-  { id:"squat",     name:"Squat",                  muscle:"Quads",        type:"legs" },
-  { id:"rdl",       name:"Romanian Deadlift",      muscle:"Hamstrings",   type:"legs" },
-  { id:"leg_press", name:"Leg Press",              muscle:"Quads",        type:"legs" },
-  { id:"lunges",    name:"Walking Lunges",         muscle:"Quads/Glutes", type:"legs" },
-  { id:"leg_curl",  name:"Leg Curl",               muscle:"Hamstrings",   type:"legs" },
-  { id:"calf",      name:"Calf Raises",            muscle:"Calves",       type:"legs" },
-  { id:"hip_thrust",name:"Hip Thrust",             muscle:"Glutes",       type:"legs" },
+  // PUSH — Chest
+  { id:"bench",          name:"Bench Press",                  muscle:"Chest",         type:"push" },
+  { id:"incline_bb",     name:"Incline Barbell Press",        muscle:"Upper Chest",   type:"push" },
+  { id:"incline",        name:"Incline Dumbbell Press",       muscle:"Upper Chest",   type:"push" },
+  { id:"decline_bench",  name:"Decline Bench Press",          muscle:"Lower Chest",   type:"push" },
+  { id:"db_bench",       name:"Flat Dumbbell Press",          muscle:"Chest",         type:"push" },
+  { id:"cable_fly",      name:"Cable Fly",                    muscle:"Chest",         type:"push" },
+  { id:"pec_deck",       name:"Pec Deck / Machine Fly",       muscle:"Chest",         type:"push" },
+  { id:"dips",           name:"Weighted Dips",                muscle:"Chest/Triceps", type:"push" },
+  { id:"machine_press",  name:"Machine Chest Press",          muscle:"Chest",         type:"push" },
+  { id:"pushup",         name:"Push-ups",                     muscle:"Chest",         type:"push" },
+  // PUSH — Shoulders
+  { id:"ohp",            name:"Overhead Press",               muscle:"Shoulders",     type:"push" },
+  { id:"db_ohp",         name:"Dumbbell Shoulder Press",      muscle:"Shoulders",     type:"push" },
+  { id:"arnold",         name:"Arnold Press",                 muscle:"Shoulders",     type:"push" },
+  { id:"machine_ohp",    name:"Machine Shoulder Press",       muscle:"Shoulders",     type:"push" },
+  { id:"lateral",        name:"Lateral Raises",               muscle:"Side Delts",    type:"push" },
+  { id:"cable_lateral",  name:"Cable Lateral Raises",         muscle:"Side Delts",    type:"push" },
+  { id:"front_raise",    name:"Front Raises",                 muscle:"Front Delts",   type:"push" },
+  // PUSH — Triceps
+  { id:"tricep",         name:"Tricep Pushdown",              muscle:"Triceps",       type:"push" },
+  { id:"skullcrusher",   name:"Skull Crushers",               muscle:"Triceps",       type:"push" },
+  { id:"closegrip",      name:"Close Grip Bench Press",       muscle:"Triceps",       type:"push" },
+  { id:"oh_tricep_ext",  name:"Overhead Tricep Extension",    muscle:"Triceps",       type:"push" },
+  { id:"tricep_kick",    name:"Tricep Kickbacks",             muscle:"Triceps",       type:"push" },
+  { id:"jm_press",       name:"JM Press",                     muscle:"Triceps",       type:"push" },
+  // PULL — Back
+  { id:"deadlift",       name:"Deadlift",                     muscle:"Back",          type:"pull" },
+  { id:"rack_pull",      name:"Rack Pulls",                   muscle:"Back",          type:"pull" },
+  { id:"row",            name:"Barbell Row",                  muscle:"Back",          type:"pull" },
+  { id:"pendlay",        name:"Pendlay Row",                  muscle:"Back",          type:"pull" },
+  { id:"tbar_row",       name:"T-Bar Row",                    muscle:"Back",          type:"pull" },
+  { id:"db_row",         name:"Dumbbell Row",                 muscle:"Back",          type:"pull" },
+  { id:"chest_row",      name:"Chest Supported Row",          muscle:"Mid Back",      type:"pull" },
+  { id:"machine_row",    name:"Machine Row",                  muscle:"Mid Back",      type:"pull" },
+  { id:"cable_row",      name:"Cable Row",                    muscle:"Mid Back",      type:"pull" },
+  { id:"low_row",        name:"Low Cable Row",                muscle:"Mid Back",      type:"pull" },
+  { id:"pullup",         name:"Pull-ups",                     muscle:"Lats",          type:"pull" },
+  { id:"chinup",         name:"Chin-ups",                     muscle:"Lats/Biceps",   type:"pull" },
+  { id:"lat_pulldown",   name:"Lat Pulldown",                 muscle:"Lats",          type:"pull" },
+  { id:"straight_arm",   name:"Straight Arm Pulldown",        muscle:"Lats",          type:"pull" },
+  // PULL — Biceps
+  { id:"curl",           name:"Barbell Curl",                 muscle:"Biceps",        type:"pull" },
+  { id:"hammer",         name:"Hammer Curls",                 muscle:"Brachialis",    type:"pull" },
+  { id:"preacher",       name:"Preacher Curl",                muscle:"Biceps",        type:"pull" },
+  { id:"incline_curl",   name:"Incline Dumbbell Curl",        muscle:"Biceps",        type:"pull" },
+  { id:"spider_curl",    name:"Spider Curl",                  muscle:"Biceps",        type:"pull" },
+  { id:"cable_curl",     name:"Cable Curl",                   muscle:"Biceps",        type:"pull" },
+  { id:"reverse_curl",   name:"Reverse Curl",                 muscle:"Brachialis",    type:"pull" },
+  { id:"concentration",  name:"Concentration Curl",           muscle:"Biceps",        type:"pull" },
+  // PULL — Rear Delts / Upper Back
+  { id:"face_pull",      name:"Face Pull",                    muscle:"Rear Delts",    type:"pull" },
+  { id:"rear_fly",       name:"Rear Delt Fly",                muscle:"Rear Delts",    type:"pull" },
+  { id:"shrug",          name:"Barbell Shrug",                muscle:"Traps",         type:"pull" },
+  { id:"db_shrug",       name:"Dumbbell Shrug",               muscle:"Traps",         type:"pull" },
+  // LEGS — Quads
+  { id:"squat",          name:"Squat",                        muscle:"Quads",         type:"legs" },
+  { id:"front_squat",    name:"Front Squat",                  muscle:"Quads",         type:"legs" },
+  { id:"box_squat",      name:"Box Squat",                    muscle:"Quads",         type:"legs" },
+  { id:"pause_squat",    name:"Pause Squat",                  muscle:"Quads",         type:"legs" },
+  { id:"hack_squat",     name:"Hack Squat",                   muscle:"Quads",         type:"legs" },
+  { id:"leg_press",      name:"Leg Press",                    muscle:"Quads",         type:"legs" },
+  { id:"leg_ext",        name:"Leg Extension",                muscle:"Quads",         type:"legs" },
+  { id:"goblet",         name:"Goblet Squat",                 muscle:"Quads",         type:"legs" },
+  { id:"step_up",        name:"Step Ups",                     muscle:"Quads/Glutes",  type:"legs" },
+  // LEGS — Hamstrings / Glutes
+  { id:"rdl",            name:"Romanian Deadlift",            muscle:"Hamstrings",    type:"legs" },
+  { id:"sumo_dl",        name:"Sumo Deadlift",                muscle:"Hamstrings",    type:"legs" },
+  { id:"good_morning",   name:"Good Mornings",                muscle:"Hamstrings",    type:"legs" },
+  { id:"leg_curl",       name:"Leg Curl",                     muscle:"Hamstrings",    type:"legs" },
+  { id:"nordic",         name:"Nordic Hamstring Curl",        muscle:"Hamstrings",    type:"legs" },
+  { id:"hip_thrust",     name:"Hip Thrust",                   muscle:"Glutes",        type:"legs" },
+  { id:"glute_kick",     name:"Glute Kickback",               muscle:"Glutes",        type:"legs" },
+  { id:"lunges",         name:"Walking Lunges",               muscle:"Quads/Glutes",  type:"legs" },
+  { id:"bulgarian",      name:"Bulgarian Split Squat",        muscle:"Quads/Glutes",  type:"legs" },
+  { id:"single_leg_press",name:"Single Leg Press",           muscle:"Quads/Glutes",  type:"legs" },
+  { id:"rev_hyper",      name:"Reverse Hyperextension",       muscle:"Glutes/Hams",   type:"legs" },
+  // LEGS — Calves
+  { id:"calf",           name:"Calf Raises",                  muscle:"Calves",        type:"legs" },
+  { id:"seated_calf",    name:"Seated Calf Raises",           muscle:"Calves",        type:"legs" },
 ];
 
 const EXERCISE_GROUPS = ["push","pull","legs"];
@@ -115,6 +182,31 @@ const SPLIT_TEMPLATES = [
 ];
 
 // HELPERS
+function urlBase64ToUint8Array(b64) {
+  const padding = "=".repeat((4 - (b64.length % 4)) % 4);
+  const base64 = (b64 + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+function fmtHour(h) {
+  if (h === 0) return "12:00 AM";
+  if (h === 12) return "12:00 PM";
+  return h < 12 ? `${h}:00 AM` : `${h - 12}:00 PM`;
+}
+
+const EX_ABBREVS = { db:"dumbbell", bb:"barbell", ohp:"overhead press", rdl:"romanian deadlift", cgb:"close grip", inc:"incline", dec:"decline", ez:"ez bar", lat:"lat", bw:"bodyweight" };
+
+function matchesExSearch(ex, query) {
+  if (!query.trim()) return true;
+  let q = query.toLowerCase().trim();
+  Object.entries(EX_ABBREVS).forEach(([abbr, full]) => {
+    q = q.replace(new RegExp(`\\b${abbr}\\b`, "g"), full);
+  });
+  const haystack = `${ex.name} ${ex.muscle}`.toLowerCase();
+  return q.split(/\s+/).filter(Boolean).every(word => haystack.includes(word));
+}
+
 function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ""; }
 function fmtDate(ts) { return new Date(ts).toLocaleDateString("en-US",{month:"short",day:"numeric"}); }
 function fmtDateFull(ts) { return new Date(ts).toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}); }
@@ -338,7 +430,7 @@ function AuthPage({ d, dark, toggleDark }) {
     setError(""); setLoading(true);
     if (mode === "login") {
       const { error } = await supabase.auth.signInWithPassword({ email, password:pass });
-      if (error) setError(error.message);
+      if (error) setError("Invalid email or password.");
     } else {
       const profile = parseProfile({ profileName, weight, heightFt, heightIn, splitId });
       if (profile.error) {
@@ -351,7 +443,7 @@ function AuthPage({ d, dark, toggleDark }) {
         password:pass,
         options:{ data:profile.data },
       });
-      if (error) setError(error.message);
+      if (error) setError("Could not create account. Please try again.");
       else setSuccess("Account created! Check your email to confirm, then log in.");
     }
     setLoading(false);
@@ -504,7 +596,7 @@ function ProfileSetup({ session, setSession, d, dark, toggleDark }) {
     const { data, error } = await supabase.auth.updateUser({ data:profile.data });
     setSaving(false);
     if (error) {
-      setError(error.message);
+      setError("Failed to save profile. Please try again.");
       return;
     }
 
@@ -561,9 +653,11 @@ function MainApp({ session, d, dark, toggleDark }) {
   const profile = session.user.user_metadata || {};
   const profileSplit = profile.split_id;
   const profileWeight = profile.weight_lbs;
-  const [workouts, setWorkouts]   = useState([]);
-  const [bwLog, setBwLog]         = useState([]);
-  const [customEx, setCustomEx]   = useState([]);
+  const [workouts, setWorkouts]     = useState([]);
+  const [bwLog, setBwLog]           = useState([]);
+  const [customEx, setCustomEx]     = useState([]);
+  const [friendships, setFriendships] = useState([]);
+  const [friendAddTarget, setFriendAddTarget] = useState(null);
   const [selectedSplitId, setSelectedSplitId] = useState(() => profileSplit || localStorage.getItem("il_split") || "ppl");
   const [customRoutine, setCustomRoutine] = useState(() => {
     try {
@@ -591,11 +685,9 @@ function MainApp({ session, d, dark, toggleDark }) {
       .map(day => [day.type, day.label]);
     return Object.fromEntries(entries);
   }, [customRoutine]);
-  const workoutTypes = useMemo(() => uniq([
-    ...Object.keys(WORKOUT_TYPE_META),
-    ...activeRoutine.filter(day => day.type !== "rest").map(day => day.type),
-    ...workouts.map(w => w.type),
-  ]), [activeRoutine, workouts]);
+  const workoutTypes = useMemo(() => uniq(
+    activeRoutine.filter(day => day.type !== "rest").map(day => day.type)
+  ), [activeRoutine]);
 
   const showToast = useCallback((msg) => {
     setToast(msg);
@@ -608,16 +700,28 @@ function MainApp({ session, d, dark, toggleDark }) {
     async function loadAll() {
       setDataLoading(true);
       try {
-        const [w, bw, ce] = await Promise.all([fetchWorkouts(userId), fetchBodyWeight(userId), fetchCustomExercises(userId)]);
+        const [w, bw, ce, fs] = await Promise.all([fetchWorkouts(userId), fetchBodyWeight(userId), fetchCustomExercises(userId), fetchFriendships(userId)]);
         let bodyWeight = bw;
         if (!bodyWeight.length && profileWeight) {
           const today = new Date(new Date().toISOString().slice(0,10)+"T12:00:00").getTime();
           const row = await saveBodyWeight(userId, today, Number(profileWeight));
           bodyWeight = [{ id:row.id, date:today, weight:row.weight }];
         }
-        setWorkouts(w); setBwLog(bodyWeight); setCustomEx(ce);
+        setWorkouts(w); setBwLog(bodyWeight); setCustomEx(ce); setFriendships(fs);
+
+        // Sync public profile so others can find this user
+        syncUserProfile(userId, { profile_name: profile.profile_name, email: session.user.email, weight_lbs: profile.weight_lbs, height_in: profile.height_in, split_id: profile.split_id || profileSplit }).catch(() => {});
+
+        // Handle ?friend= share link
+        const params = new URLSearchParams(window.location.search);
+        const friendParam = params.get("friend");
+        if (friendParam && friendParam !== userId) {
+          window.history.replaceState({}, "", window.location.pathname);
+          const targetProfile = await fetchUserProfileById(friendParam);
+          if (targetProfile) setFriendAddTarget({ userId: friendParam, profile: targetProfile });
+        }
       } catch (error) {
-        showToast(error.message || "Error loading data");
+        showToast("Failed to load your data. Please refresh.");
       } finally {
         setDataLoading(false);
       }
@@ -670,7 +774,7 @@ function MainApp({ session, d, dark, toggleDark }) {
       showToast("Workout deleted");
     } catch (error) {
       if (removed) setWorkouts(prev => [...prev, removed].sort((a, b) => b.date - a.date));
-      showToast(error.message || "Error deleting workout");
+      showToast("Failed to delete workout. Please try again.");
     }
   }
 
@@ -687,7 +791,7 @@ function MainApp({ session, d, dark, toggleDark }) {
       showToast("Workout saved");
       navigate("history");
     } catch (error) {
-      showToast(error.message || "Error saving workout");
+      showToast("Failed to save workout. Please try again.");
     }
   }
 
@@ -698,7 +802,7 @@ function MainApp({ session, d, dark, toggleDark }) {
       setBwLog(prev => [...prev.filter(b => b.date !== date), { id:row.id, date:ts, weight:row.weight }].sort((a,b) => a.date - b.date));
       return true;
     } catch (error) {
-      showToast(error.message || "Error saving weight");
+      showToast("Failed to save weight. Please try again.");
       return false;
     }
   }
@@ -729,6 +833,7 @@ function MainApp({ session, d, dark, toggleDark }) {
     await supabase.auth.signOut();
   }
 
+  const pendingRequestCount = friendships.filter(f => f.status === "pending" && f.addressee_id === userId).length;
   const navItems = [
     { id:"dashboard",  label:"Dashboard",        icon:<GridIcon /> },
     { id:"log",        label:"Start Workout",    icon:<PlusIcon /> },
@@ -736,11 +841,14 @@ function MainApp({ session, d, dark, toggleDark }) {
     { id:"prs",        label:"Personal Records", icon:<TrendIcon /> },
     { id:"bodyweight", label:"Body Weight",      icon:<ScaleIcon /> },
     { id:"routines",   label:"Routines",         icon:<ListIcon /> },
+    { id:"social",     label:"Social",           icon:<UsersIcon />, badge: pendingRequestCount || null },
     { id:"profile",    label:"Profile",          icon:<UserIcon /> },
   ];
   const navButton = (n) => (
-    <button key={n.id} onClick={()=>n.id==="log" ? handleNavigateToLog() : navigate(n.id)} style={{ display:"flex", alignItems:"center", justifyContent:isMobile?"center":"flex-start", gap:isMobile?5:10, padding:isMobile?"8px 10px":"9px 16px", margin:isMobile?0:"1px 8px", borderRadius:8, cursor:"pointer", fontSize:isMobile?11:14, border:"none", background:page===n.id?d.accentSoft:"none", color:page===n.id?d.accentHover:d.text2, minWidth:isMobile?74:"auto", width:isMobile?"auto":"calc(100% - 16px)", textAlign:"left", flexDirection:isMobile?"column":"row", boxShadow:!isMobile&&page===n.id?`inset 3px 0 0 ${d.accent}`:"none" }}>
-      {n.icon}<span>{isMobile ? n.label.replace("Start Workout","Start").replace("Personal Records","PRs").replace("Body Weight","Weight") : n.label}</span>
+    <button key={n.id} onClick={()=>n.id==="log" ? handleNavigateToLog() : navigate(n.id)} style={{ display:"flex", alignItems:"center", justifyContent:isMobile?"center":"flex-start", gap:isMobile?5:10, padding:isMobile?"8px 10px":"9px 16px", margin:isMobile?0:"1px 8px", borderRadius:8, cursor:"pointer", fontSize:isMobile?11:14, border:"none", background:page===n.id?d.accentSoft:"none", color:page===n.id?d.accentHover:d.text2, minWidth:isMobile?74:"auto", width:isMobile?"auto":"calc(100% - 16px)", textAlign:"left", flexDirection:isMobile?"column":"row", boxShadow:!isMobile&&page===n.id?`inset 3px 0 0 ${d.accent}`:"none", position:"relative" }}>
+      {n.icon}
+      <span>{isMobile ? n.label.replace("Start Workout","Start").replace("Personal Records","PRs").replace("Body Weight","Weight") : n.label}</span>
+      {n.badge ? <span style={{ background:d.danger, color:"#fff", borderRadius:20, fontSize:10, fontWeight:700, padding:"1px 5px", marginLeft:"auto" }}>{n.badge}</span> : null}
     </button>
   );
 
@@ -748,7 +856,7 @@ function MainApp({ session, d, dark, toggleDark }) {
     <div style={{ display:"flex", flexDirection:isMobile?"column":"row", height:"100vh", overflow:"hidden", fontFamily:"-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", fontSize:15, color:d.text, background:d.bg }}>
       <aside style={{ width:220, minWidth:220, background:d.surface, borderRight:`1px solid ${d.border}`, display:isMobile?"none":"flex", flexDirection:"column" }}>
           <div style={{ padding:"22px 20px 14px" }}>
-            <div style={{ fontSize:20, fontWeight:700, letterSpacing:"-0.5px", color:d.text }}>PeakSet</div>
+            <img src="/logo.png" alt="PeakSet" style={{ height:44, width:"auto", maxWidth:"100%", display:"block" }} />
           <div style={{ fontSize:11, color:d.text3, marginTop:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{profile.profile_name || session.user.email}</div>
         </div>
         <div style={{ padding:"4px 12px 6px", fontSize:11, fontWeight:600, color:d.text3, letterSpacing:".08em", textTransform:"uppercase" }}>Menu</div>
@@ -768,7 +876,7 @@ function MainApp({ session, d, dark, toggleDark }) {
         <div style={{ background:d.surface, borderBottom:`1px solid ${d.border}`, padding:"12px 12px 8px", flexShrink:0 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:18, fontWeight:800, color:d.text }}>PeakSet</div>
+              <img src="/logo.png" alt="PeakSet" style={{ height:32, width:"auto", display:"block" }} />
               <div style={{ fontSize:11, color:d.text3 }}>{profile.profile_name || session.user.email}</div>
             </div>
             <div style={{ display:"flex", gap:6 }}>
@@ -798,34 +906,54 @@ function MainApp({ session, d, dark, toggleDark }) {
             {page==="prs"        && <PRs prs={prs} workouts={workouts} allEx={allEx} d={d} />}
             {page==="bodyweight" && <BodyWeight bwLog={bwLog} saveBw={handleSaveBw} deleteBw={handleDeleteBw} showToast={showToast} isMobile={isMobile} d={d} />}
             {page==="routines"   && <Routines splitTemplates={SPLIT_TEMPLATES} selectedSplitId={selectedSplitId} setSelectedSplitId={setSelectedSplitId} customRoutine={customRoutine} setCustomRoutine={setCustomRoutine} routine={activeRoutine} prs={prs} allEx={allEx} navigate={navigate} showToast={showToast} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
-            {page==="profile"    && <Profile profile={profile} email={session.user.email} prs={prs} bwLog={bwLog} allEx={allEx} selectedSplitId={selectedSplitId} isMobile={isMobile} d={d} />}
+            {page==="social"     && <Social userId={userId} profile={profile} friendships={friendships} setFriendships={setFriendships} showToast={showToast} isMobile={isMobile} d={d} />}
+            {page==="profile"    && <Profile profile={profile} email={session.user.email} prs={prs} bwLog={bwLog} allEx={allEx} selectedSplitId={selectedSplitId} userId={userId} isMobile={isMobile} d={d} />}
           </>
         )}
       </main>
 
       {toast && <div style={{ position:"fixed", bottom:isMobile?16:24, right:isMobile?16:24, left:isMobile?16:"auto", background:d.accentHover, color:"#ffffff", padding:"10px 18px", borderRadius:8, fontSize:13, fontWeight:500, zIndex:999, boxShadow:`0 10px 30px ${d.accent}55`, textAlign:isMobile?"center":"left" }}>{toast}</div>}
+
+      {friendAddTarget && (
+        <div style={hs(d).overlay} onClick={()=>setFriendAddTarget(null)}>
+          <div style={{...hs(d).modal, maxWidth:340}} onClick={e=>e.stopPropagation()}>
+            <div style={{ fontSize:32, textAlign:"center", marginBottom:8 }}>👋</div>
+            <h3 style={{ fontSize:18, fontWeight:700, color:d.text, textAlign:"center", marginBottom:6 }}>Add Friend?</h3>
+            <p style={{ fontSize:14, color:d.text2, textAlign:"center", margin:"0 0 20px" }}>Send a friend request to <strong>{friendAddTarget.profile.profile_name}</strong>?</p>
+            <div style={{ display:"flex", gap:8 }}>
+              <button style={{...hs(d).btn, background:d.accent, color:d.accentText, flex:1, justifyContent:"center"}} onClick={async()=>{
+                const already = friendships.find(f=>(f.requester_id===userId&&f.addressee_id===friendAddTarget.userId)||(f.addressee_id===userId&&f.requester_id===friendAddTarget.userId));
+                if (already) { showToast("Already connected."); }
+                else {
+                  try {
+                    await sendFriendRequest(userId, friendAddTarget.userId);
+                    setFriendships(prev=>[...prev,{id:String(Date.now()),requester_id:userId,addressee_id:friendAddTarget.userId,status:"pending",created_at:new Date().toISOString()}]);
+                    showToast("Friend request sent!");
+                  } catch { showToast("Could not send friend request."); }
+                }
+                setFriendAddTarget(null);
+              }}>Send Request</button>
+              <button style={{...hs(d).btnSm, flex:1, justifyContent:"center"}} onClick={()=>setFriendAddTarget(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // DASHBOARD
 function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeLabels, isMobile, d }) {
-  const totalVol = useMemo(() => workouts.reduce((a,w)=>a+w.exercises.reduce((b,e)=>b+e.sets.reduce((c,s)=>c+s.reps*s.weight,0),0),0), [workouts]);
   const recent = useMemo(() => [...workouts].sort((a,b)=>b.date-a.date).slice(0,3), [workouts]);
   const latestBW = useMemo(() => bwLog.length ? [...bwLog].sort((a,b)=>b.date-a.date)[0] : null, [bwLog]);
   return (
     <div>
       <h1 style={hs(d).h1}>Dashboard</h1>
       <p style={hs(d).sub}>Your training overview</p>
-      <div style={{ display:"grid", gridTemplateColumns:isMobile?"repeat(2,1fr)":"repeat(4,1fr)", gap:12, marginBottom:20 }}>
+      <div style={{ display:"grid", gridTemplateColumns:isMobile?"repeat(3,1fr)":"repeat(3,1fr)", gap:12, marginBottom:20 }}>
         <StatCard val={workouts.length} label="Workouts" d={d}/>
-        <StatCard val={(totalVol/1000).toFixed(0)+"k"} label="Volume lbs" d={d}/>
         <StatCard val={Object.keys(prs).length} label="PRs" d={d}/>
         <StatCard val={latestBW?latestBW.weight+"lbs":"-"} label="Body Weight" d={d}/>
-      </div>
-      <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:16, marginBottom:16 }}>
-        <div style={hs(d).card}><h3 style={hs(d).h3}>Volume by Type</h3><VolChart workouts={workouts} typeLabels={typeLabels} d={d}/></div>
-        <div style={hs(d).card}><h3 style={hs(d).h3}>Volume by Muscle</h3><MuscleChart workouts={workouts} allEx={allEx} d={d}/></div>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:16, marginBottom:16 }}>
         <div style={hs(d).card}><h3 style={hs(d).h3}>Bench Press Progress</h3><ProgressChart workouts={workouts} exId="bench" d={d}/></div>
@@ -842,7 +970,7 @@ function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeL
   );
 }
 
-function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, isMobile, d }) {
+function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, userId, isMobile, d }) {
   const sortedWeight = [...bwLog].sort((a,b)=>b.date-a.date);
   const latestWeight = sortedWeight[0];
   const oldestWeight = sortedWeight[sortedWeight.length-1];
@@ -853,6 +981,73 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, isMobile,
     .map(([id, pr]) => ({ id, pr, ex:allEx.find(e=>e.id===id) }))
     .filter(row => row.ex)
     .sort((a,b)=>b.pr.date-a.pr.date);
+
+  const supportsNotif = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  const [notifSub, setNotifSub] = useState(null);
+  const [notifHour, setNotifHour] = useState(8);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [notifPermission, setNotifPermission] = useState(() => typeof Notification !== "undefined" ? Notification.permission : "default");
+  const [notifMsg, setNotifMsg] = useState("");
+
+  useEffect(() => {
+    if (!supportsNotif) return;
+    supabase.from("push_subscriptions").select("*").eq("user_id", userId).maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setNotifSub(data);
+          const localH = ((data.reminder_hour - new Date().getTimezoneOffset() / 60) % 24 + 24) % 24;
+          setNotifHour(Math.round(localH));
+        }
+      });
+  }, [userId, supportsNotif]);
+
+  async function enableReminder() {
+    setNotifLoading(true);
+    setNotifMsg("");
+    try {
+      const perm = await Notification.requestPermission();
+      setNotifPermission(perm);
+      if (perm !== "granted") { setNotifMsg("Permission denied — enable notifications in your browser settings."); return; }
+      const sw = await navigator.serviceWorker.register("/sw.js");
+      await navigator.serviceWorker.ready;
+      const sub = await sw.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(import.meta.env.VITE_VAPID_PUBLIC_KEY) });
+      const utcHour = Math.round((notifHour + new Date().getTimezoneOffset() / 60 + 24) % 24);
+      const { data, error } = await supabase.from("push_subscriptions")
+        .upsert({ user_id: userId, subscription: JSON.stringify(sub.toJSON()), reminder_hour: utcHour }, { onConflict: "user_id" })
+        .select().single();
+      if (error) { setNotifMsg("Failed to save reminder."); return; }
+      setNotifSub(data);
+      setNotifMsg("Reminder set! You'll get a daily nudge at " + fmtHour(notifHour) + ".");
+    } catch (err) {
+      setNotifMsg("Something went wrong: " + err.message);
+    } finally {
+      setNotifLoading(false);
+    }
+  }
+
+  async function updateReminderTime() {
+    if (!notifSub) return;
+    setNotifLoading(true);
+    setNotifMsg("");
+    const utcHour = Math.round((notifHour + new Date().getTimezoneOffset() / 60 + 24) % 24);
+    const { error } = await supabase.from("push_subscriptions").update({ reminder_hour: utcHour }).eq("id", notifSub.id);
+    if (!error) { setNotifSub(s => ({ ...s, reminder_hour: utcHour })); setNotifMsg("Reminder updated to " + fmtHour(notifHour) + "."); }
+    setNotifLoading(false);
+  }
+
+  async function disableReminder() {
+    setNotifLoading(true);
+    setNotifMsg("");
+    try {
+      if (notifSub) await supabase.from("push_subscriptions").delete().eq("id", notifSub.id);
+      const reg = await navigator.serviceWorker.getRegistration("/sw.js");
+      if (reg) { const ps = await reg.pushManager.getSubscription(); if (ps) await ps.unsubscribe(); }
+      setNotifSub(null);
+      setNotifMsg("Reminders disabled.");
+    } finally {
+      setNotifLoading(false);
+    }
+  }
 
   return (
     <div>
@@ -915,6 +1110,53 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, isMobile,
           <Empty icon="" title="No PRs yet" desc="Log workouts to start filling this in" d={d}/>
         )}
       </div>
+
+      <div style={hs(d).card}>
+        <h3 style={{...hs(d).h3,marginBottom:4}}>Workout Reminder</h3>
+        <p style={{ fontSize:13, color:d.text3, margin:"0 0 14px" }}>
+          Get a daily push notification to help you stay consistent.
+        </p>
+        {!supportsNotif ? (
+          <div style={{ fontSize:13, color:d.text3 }}>Push notifications aren't supported in this browser. Try adding the app to your home screen on iOS 16.4+ or use Chrome/Edge on Android.</div>
+        ) : notifPermission === "denied" ? (
+          <div style={{ fontSize:13, color:d.text3 }}>Notifications are blocked. Enable them in your browser/system settings, then reload.</div>
+        ) : (
+          <>
+            <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14, flexWrap:"wrap" }}>
+              <label style={{ fontSize:13, color:d.text2, fontWeight:600 }}>Reminder time</label>
+              <select
+                value={notifHour}
+                onChange={e => setNotifHour(Number(e.target.value))}
+                style={{ background:d.surface2, color:d.text, border:`1px solid ${d.border}`, borderRadius:8, padding:"6px 10px", fontSize:13 }}
+              >
+                {Array.from({length:24},(_,i)=>i).map(h=>(
+                  <option key={h} value={h}>{fmtHour(h)}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+              {!notifSub ? (
+                <button onClick={enableReminder} disabled={notifLoading} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, padding:"8px 18px" }}>
+                  {notifLoading ? "Enabling…" : "Enable Reminder"}
+                </button>
+              ) : (
+                <>
+                  <div style={{ fontSize:13, color:"#22c55e", fontWeight:600, display:"flex", alignItems:"center", gap:6, marginRight:4 }}>
+                    <span>●</span> Active — daily at {fmtHour(notifHour)}
+                  </div>
+                  <button onClick={updateReminderTime} disabled={notifLoading} style={{ ...hs(d).btn, background:d.surface2, border:`1px solid ${d.border}`, padding:"8px 14px" }}>
+                    {notifLoading ? "Saving…" : "Update Time"}
+                  </button>
+                  <button onClick={disableReminder} disabled={notifLoading} style={{ ...hs(d).btn, background:"transparent", color:d.text3, border:`1px solid ${d.border}`, padding:"8px 14px" }}>
+                    Disable
+                  </button>
+                </>
+              )}
+            </div>
+            {notifMsg && <div style={{ fontSize:12, color:d.text3, marginTop:10 }}>{notifMsg}</div>}
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -935,31 +1177,6 @@ function useChart(ref, config) {
     const chart = new Chart(ref.current, config);
     return ()=>chart.destroy();
   }, [ref, config]);
-}
-
-function VolChart({ workouts, typeLabels, d }) {
-  const ref = useRef();
-  const config = useMemo(() => {
-    const types=uniq(workouts.map(w=>w.type)).length ? uniq(workouts.map(w=>w.type)) : ["push","pull","legs"];
-    const vols=types.map(t=>workouts.filter(w=>w.type===t).reduce((a,w)=>a+w.exercises.reduce((b,e)=>b+e.sets.reduce((c,s)=>c+s.reps*s.weight,0),0),0));
-    const colors=types.map(t=>WORKOUT_TYPE_META[t]?.color || "#6b6b67");
-    return { type:"bar", data:{ labels:types.map(t=>typeLabel(t, typeLabels)), datasets:[{ data:vols, backgroundColor:colors.map(c=>c+"33"), borderColor:colors, borderWidth:2, borderRadius:5 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ grid:{color:d.gridLine}, ticks:{color:d.text3,callback:v=>(v/1000).toFixed(0)+"k"} }, x:{ grid:{display:false}, ticks:{color:d.text3} } } } };
-  }, [workouts, typeLabels, d]);
-  useChart(ref, config);
-  return <div style={{height:180}}><canvas ref={ref}/></div>;
-}
-
-function MuscleChart({ workouts, allEx, d }) {
-  const ref = useRef();
-  const config = useMemo(() => {
-    const vol={};
-    workouts.forEach(w=>w.exercises.forEach(ex=>{ const e=allEx.find(x=>x.id===ex.id); if(!e)return; const m=e.muscle.split("/")[0]; vol[m]=(vol[m]||0)+ex.sets.reduce((a,s)=>a+s.reps*s.weight,0); }));
-    const sorted=Object.entries(vol).sort((a,b)=>b[1]-a[1]).slice(0,6);
-    const colors=["#c0392b","#1a5fa8","#2d7d46","#b05f0a","#7b4ea0","#1a7a8a"];
-    return { type:"bar", data:{ labels:sorted.map(s=>s[0]), datasets:[{ data:sorted.map(s=>s[1]), backgroundColor:colors.map(c=>c+"33"), borderColor:colors, borderWidth:2, borderRadius:4 }] }, options:{ indexAxis:"y", responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ x:{ grid:{color:d.gridLine}, ticks:{color:d.text3,callback:v=>(v/1000).toFixed(0)+"k"} }, y:{ grid:{display:false}, ticks:{color:d.text3,font:{size:11}} } } } };
-  }, [workouts, allEx, d]);
-  useChart(ref, config);
-  return <div style={{height:180}}><canvas ref={ref}/></div>;
 }
 
 function ProgressChart({ workouts, exId, d }) {
@@ -988,7 +1205,6 @@ function BWChart({ data, d }) {
 function WorkoutEntry({ w, prs, allEx, onDelete, typeLabels, isMobile, d }) {
   const [open, setOpen] = useState(false);
   const borderColor = WORKOUT_TYPE_META[w.type]?.color || d.border;
-  const totalVol = w.exercises.reduce((a,e)=>a+e.sets.reduce((b,s)=>b+s.reps*s.weight,0),0);
   return (
     <div style={{ border:`1px solid ${d.border}`, borderLeft:`3px solid ${borderColor}`, borderRadius:10, marginBottom:10, overflow:"hidden" }}>
       <div style={{ padding:"12px 16px", background:d.surface, display:"flex", alignItems:isMobile?"flex-start":"center", justifyContent:"space-between", gap:10, cursor:"pointer" }} onClick={()=>setOpen(!open)}>
@@ -996,7 +1212,7 @@ function WorkoutEntry({ w, prs, allEx, onDelete, typeLabels, isMobile, d }) {
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <span style={{...badgeStyle(w.type),display:"inline-flex",padding:"2px 8px",borderRadius:20,fontSize:13,fontWeight:700}}>{typeLabel(w.type, typeLabels)}</span>
           </div>
-          <div style={{ fontSize:12, color:d.text3, marginTop:2 }}>{fmtDateFull(w.date)} / {w.exercises.length} exercises / {totalVol.toLocaleString()} lbs</div>
+          <div style={{ fontSize:12, color:d.text3, marginTop:2 }}>{fmtDateFull(w.date)} / {w.exercises.length} exercises</div>
         </div>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
           {onDelete && <button style={{ background:d.dangerBg, color:d.danger, border:"none", borderRadius:6, padding:"4px 10px", fontSize:12, fontWeight:600, cursor:"pointer" }} onClick={e=>{e.stopPropagation();onDelete(w.id)}}>Delete</button>}
@@ -1008,12 +1224,11 @@ function WorkoutEntry({ w, prs, allEx, onDelete, typeLabels, isMobile, d }) {
           {w.notes && <p style={{ fontStyle:"italic", fontSize:13, color:d.text2, margin:"10px 0" }}>"{w.notes}"</p>}
           <div style={{ overflowX:"auto" }}>
             <table style={{ width:"100%", minWidth:isMobile?620:"auto", borderCollapse:"collapse", fontSize:13 }}>
-              <thead><tr>{["Exercise","Sets","Best Set","RPE","Volume"].map(h=><th key={h} style={hs(d).th}>{h}</th>)}</tr></thead>
+              <thead><tr>{["Exercise","Sets","Best Set","RPE"].map(h=><th key={h} style={hs(d).th}>{h}</th>)}</tr></thead>
               <tbody>
                 {w.exercises.map(ex=>{
                   const exData=allEx.find(e=>e.id===ex.id);
                   const best=ex.sets.reduce((b,s)=>s.weight>b.weight?s:b,ex.sets[0]);
-                  const vol=ex.sets.reduce((a,s)=>a+s.reps*s.weight,0);
                   const isPR=prs[ex.id]&&prs[ex.id].weight===best.weight&&new Date(prs[ex.id].date).toDateString()===new Date(w.date).toDateString();
                   const rpes=ex.sets.filter(s=>s.rpe).map(s=>s.rpe);
                   return (
@@ -1022,7 +1237,6 @@ function WorkoutEntry({ w, prs, allEx, onDelete, typeLabels, isMobile, d }) {
                       <td style={{...hs(d).td,color:d.text2}}>{ex.sets.length}</td>
                       <td style={{...hs(d).td,color:d.text2}}>{best.weight}lbs x {best.reps}</td>
                       <td style={{...hs(d).td,color:d.text3}}>{rpes.length?rpes.join(", "):"-"}</td>
-                      <td style={{...hs(d).td,color:d.text2}}>{vol.toLocaleString()}</td>
                     </tr>
                   );
                 })}
@@ -1121,6 +1335,7 @@ function LogWorkout({ logState, setLogState, workoutStarted, setWorkoutStarted, 
 
   async function handleSaveCustEx() {
     if (!newEx.name.trim()) { showToast("Enter a name"); return; }
+    if (newEx.name.length > 100) { showToast("Name must be 100 characters or less"); return; }
     setSavingEx(true);
     const saved = await saveCustomEx(newEx);
     setSavingEx(false);
@@ -1132,7 +1347,7 @@ function LogWorkout({ logState, setLogState, workoutStarted, setWorkoutStarted, 
   }
 
   const existing=logState.exercises.map(e=>e.id);
-  const filtered=allEx.filter(e=>!existing.includes(e.id)&&(exFilter==="all"||e.type===exFilter)&&(e.name.toLowerCase().includes(exSearch.toLowerCase())||e.muscle.toLowerCase().includes(exSearch.toLowerCase())));
+  const filtered=allEx.filter(e=>!existing.includes(e.id)&&(exFilter==="all"||e.type===exFilter)&&matchesExSearch(e,exSearch));
 
   function toggleTimer() {
     const next = !showTimer;
@@ -1216,11 +1431,11 @@ function LogWorkout({ logState, setLogState, workoutStarted, setWorkoutStarted, 
                     {ex.sets.map((set,si)=>(
                       <div key={si} style={{ display:"grid", gridTemplateColumns:isMobile?"28px 1fr 1fr 64px 24px":"28px 1fr 1fr 72px 1fr 24px", gap:6, marginBottom:isMobile?9:5, alignItems:"center" }}>
                         <div style={{ fontSize:11, fontWeight:700, color:d.text3, textAlign:"center", background:d.border, borderRadius:5, padding:"4px 0" }}>{si+1}</div>
-                        <input style={hs(d).input} type="number" value={set.weight||""} placeholder="lbs" onChange={e=>updateSet(i,si,"weight",e.target.value)}/>
-                        <input style={hs(d).input} type="number" value={set.reps||""} placeholder="reps" onChange={e=>updateSet(i,si,"reps",e.target.value)}/>
+                        <input style={hs(d).input} type="number" min="0" max="2000" value={set.weight||""} placeholder="lbs" onChange={e=>updateSet(i,si,"weight",e.target.value)}/>
+                        <input style={hs(d).input} type="number" min="0" max="999" value={set.reps||""} placeholder="reps" onChange={e=>updateSet(i,si,"reps",e.target.value)}/>
                         <select style={hs(d).input} value={set.rpe} onChange={e=>updateSet(i,si,"rpe",e.target.value)}>
                           <option value="">-</option>
-                          {[6,6.5,7,7.5,8,8.5,9,9.5,10].map(r=><option key={r} value={r}>{r}</option>)}
+                          {[1,2,3,4,5,6,6.5,7,7.5,8,8.5,9,9.5,10].map(r=><option key={r} value={r}>{r}</option>)}
                         </select>
                         {!isMobile&&<input style={hs(d).input} type="text" value={set.note} placeholder="note..." onChange={e=>updateSet(i,si,"note",e.target.value)}/>}
                         <button style={{ background:"none", border:"none", color:d.text3, cursor:"pointer" }} onClick={()=>removeSet(i,si)}>x</button>
@@ -1245,7 +1460,7 @@ function LogWorkout({ logState, setLogState, workoutStarted, setWorkoutStarted, 
               <h2 style={{ fontSize:18, fontWeight:600, color:d.text }}>Add Exercise</h2>
               <button style={{ background:"none", border:"none", color:d.text3, cursor:"pointer", fontSize:18 }} onClick={()=>setShowExModal(false)}>x</button>
             </div>
-            <input style={{...hs(d).input,marginBottom:10}} placeholder="Search by name or muscle..." value={exSearch} onChange={e=>setExSearch(e.target.value)} autoFocus/>
+            <input style={{...hs(d).input,marginBottom:10}} placeholder='Search — try "db press", "ohp", "lat"...' value={exSearch} onChange={e=>setExSearch(e.target.value)} autoFocus/>
             <div style={{ display:"flex", gap:4, marginBottom:10 }}>
               {["all",...EXERCISE_GROUPS].map(t=>(
                 <button key={t} onClick={()=>setExFilter(t)} style={{ padding:"4px 10px", borderRadius:6, border:`1px solid ${d.border}`, background:exFilter===t?d.accent:"none", color:exFilter===t?d.accentText:d.text2, fontSize:12, cursor:"pointer" }}>{cap(t)}</button>
@@ -1278,8 +1493,8 @@ function LogWorkout({ logState, setLogState, workoutStarted, setWorkoutStarted, 
               <button style={{ background:"none", border:"none", color:d.text3, cursor:"pointer", fontSize:18 }} onClick={()=>setShowCustModal(false)}>x</button>
             </div>
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              <div><label style={hs(d).label}>Name</label><input style={hs(d).input} placeholder="e.g. Cable Lateral Raise" value={newEx.name} onChange={e=>setNewEx({...newEx,name:e.target.value})}/></div>
-              <div><label style={hs(d).label}>Muscle Group</label><input style={hs(d).input} placeholder="e.g. Side Delts" value={newEx.muscle} onChange={e=>setNewEx({...newEx,muscle:e.target.value})}/></div>
+              <div><label style={hs(d).label}>Name</label><input style={hs(d).input} placeholder="e.g. Cable Lateral Raise" maxLength={100} value={newEx.name} onChange={e=>setNewEx({...newEx,name:e.target.value})}/></div>
+              <div><label style={hs(d).label}>Muscle Group</label><input style={hs(d).input} placeholder="e.g. Side Delts" maxLength={50} value={newEx.muscle} onChange={e=>setNewEx({...newEx,muscle:e.target.value})}/></div>
               <div><label style={hs(d).label}>Exercise Group</label>
                 <select style={hs(d).input} value={newEx.type} onChange={e=>setNewEx({...newEx,type:e.target.value})}>
                   <option value="push">Push</option><option value="pull">Pull</option><option value="legs">Legs</option>
@@ -1573,6 +1788,305 @@ function RoutineDay({ day, prs, allEx, onStart, typeLabels, isMobile, d }) {
   );
 }
 
+// SOCIAL
+function Social({ userId, profile, friendships, setFriendships, showToast, isMobile, d }) {
+  const [tab, setTab]           = useState("friends");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [profiles, setProfiles] = useState({});
+  const [viewFriend, setViewFriend] = useState(null);
+  const [qrUrl, setQrUrl]       = useState(null);
+
+  const shareUrl = `${window.location.origin}/?friend=${userId}`;
+
+  const accepted        = friendships.filter(f=>f.status==="accepted");
+  const pendingReceived = friendships.filter(f=>f.status==="pending"&&f.addressee_id===userId);
+  const pendingSent     = friendships.filter(f=>f.status==="pending"&&f.requester_id===userId);
+
+  useEffect(()=>{
+    const ids = friendships.map(f=>f.requester_id===userId?f.addressee_id:f.requester_id);
+    if (!ids.length) return;
+    fetchUserProfiles(ids).then(rows=>{
+      const map={};
+      rows.forEach(r=>{map[r.user_id]=r;});
+      setProfiles(map);
+    }).catch(()=>{});
+  }, [friendships, userId]);
+
+  async function handleSearch() {
+    if (!searchQuery.trim()) return;
+    setSearching(true);
+    try {
+      const results = await searchUsers(searchQuery, userId);
+      setSearchResults(results);
+    } catch { showToast("Search failed. Try again."); }
+    setSearching(false);
+  }
+
+  async function handleAdd(targetId) {
+    try {
+      await sendFriendRequest(userId, targetId);
+      setFriendships(prev=>[...prev,{id:String(Date.now()),requester_id:userId,addressee_id:targetId,status:"pending",created_at:new Date().toISOString()}]);
+      showToast("Friend request sent!");
+    } catch { showToast("Could not send request."); }
+  }
+
+  async function handleAccept(f) {
+    try {
+      await acceptFriendRequest(f.id);
+      setFriendships(prev=>prev.map(x=>x.id===f.id?{...x,status:"accepted"}:x));
+      showToast("Friend added!");
+    } catch { showToast("Could not accept request."); }
+  }
+
+  async function handleDecline(f) {
+    try {
+      await deleteFriendship(f.id);
+      setFriendships(prev=>prev.filter(x=>x.id!==f.id));
+    } catch { showToast("Could not decline request."); }
+  }
+
+  async function handleRemove(f) {
+    try {
+      await deleteFriendship(f.id);
+      setFriendships(prev=>prev.filter(x=>x.id!==f.id));
+      if (viewFriend) setViewFriend(null);
+      showToast("Friend removed.");
+    } catch { showToast("Could not remove friend."); }
+  }
+
+  async function generateQr() {
+    try {
+      const QRCode = (await import("qrcode")).default;
+      const url = await QRCode.toDataURL(shareUrl, { width:200, margin:2, color:{dark:"#000000",light:"#ffffff"} });
+      setQrUrl(url);
+    } catch { showToast("Could not generate QR code."); }
+  }
+
+  function friendId(f) { return f.requester_id===userId?f.addressee_id:f.requester_id; }
+
+  function AvatarCircle({ name, size=40, fontSize=16 }) {
+    return <div style={{ width:size, height:size, borderRadius:"50%", background:d.accentSoft, color:d.accentHover, display:"flex", alignItems:"center", justifyContent:"center", fontSize, fontWeight:700, flexShrink:0 }}>{(name||"?").charAt(0).toUpperCase()}</div>;
+  }
+
+  if (viewFriend) {
+    const f = accepted.find(x=>friendId(x)===viewFriend);
+    return <FriendProfile userId={viewFriend} profile={profiles[viewFriend]} onBack={()=>setViewFriend(null)} onRemove={f?()=>handleRemove(f):null} isMobile={isMobile} d={d} />;
+  }
+
+  const tabs = [
+    ["friends", `Friends${accepted.length?` (${accepted.length})`:""}` ],
+    ["requests", `Requests${pendingReceived.length?` (${pendingReceived.length})`:""}` ],
+    ["search", "Find Friends"],
+  ];
+
+  return (
+    <div>
+      <h1 style={hs(d).h1}>Social</h1>
+      <p style={hs(d).sub}>Connect with friends and see their progress</p>
+
+      {/* Share card */}
+      <div style={{...hs(d).card, marginBottom:16}}>
+        <h3 style={hs(d).h3}>Your Profile Link</h3>
+        <div style={{ display:"flex", gap:8, marginBottom: qrUrl?12:0 }}>
+          <input readOnly value={shareUrl} style={{...hs(d).input, flex:1, fontSize:12, color:d.text3}} />
+          <button style={{...hs(d).btn, background:d.accent, color:d.accentText}} onClick={()=>{navigator.clipboard.writeText(shareUrl);showToast("Link copied!");}}>Copy</button>
+          <button style={hs(d).btnSm} onClick={generateQr}>QR Code</button>
+        </div>
+        {qrUrl && <div style={{ marginTop:8 }}><img src={qrUrl} alt="QR Code" style={{ width:160, height:160, borderRadius:8, display:"block" }} /><div style={{ fontSize:12, color:d.text3, marginTop:6 }}>Share this to let friends add you instantly</div></div>}
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display:"flex", gap:6, marginBottom:16, flexWrap:"wrap" }}>
+        {tabs.map(([id, label])=>(
+          <button key={id} onClick={()=>setTab(id)} style={{...hs(d).btn, background:tab===id?d.accent:d.surface2, color:tab===id?d.accentText:d.text2, border:`1px solid ${tab===id?d.accent:d.border}`, padding:"7px 14px"}}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Friends */}
+      {tab==="friends" && (
+        accepted.length===0
+          ? <Empty icon="" title="No friends yet" desc="Search for people or share your profile link to connect" d={d}/>
+          : accepted.map(f=>{
+              const fid=friendId(f); const p=profiles[fid];
+              return (
+                <div key={f.id} style={{...hs(d).card, display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8, gap:12}}>
+                  <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                    <AvatarCircle name={p?.profile_name} />
+                    <div>
+                      <div style={{ fontWeight:600, color:d.text }}>{p?.profile_name||"Loading..."}</div>
+                      <div style={{ fontSize:12, color:d.text3 }}>{splitName(p?.split_id||"")}</div>
+                    </div>
+                  </div>
+                  <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                    <button style={{...hs(d).btn, background:d.accentSoft, color:d.accentHover, padding:"6px 12px"}} onClick={()=>setViewFriend(fid)}>View</button>
+                    <button style={{...hs(d).btnSm, color:d.danger}} onClick={()=>handleRemove(f)}>Remove</button>
+                  </div>
+                </div>
+              );
+            })
+      )}
+
+      {/* Requests */}
+      {tab==="requests" && (
+        <>
+          {pendingReceived.length>0 && (
+            <div style={{ marginBottom:16 }}>
+              <div style={{ fontSize:11, fontWeight:700, color:d.text3, textTransform:"uppercase", letterSpacing:".08em", marginBottom:8 }}>Received</div>
+              {pendingReceived.map(f=>{
+                const p=profiles[f.requester_id];
+                return (
+                  <div key={f.id} style={{...hs(d).card, display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8, gap:12}}>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      <AvatarCircle name={p?.profile_name} size={36} fontSize={14}/>
+                      <span style={{ fontWeight:600, color:d.text }}>{p?.profile_name||"Someone"}</span>
+                    </div>
+                    <div style={{ display:"flex", gap:6 }}>
+                      <button style={{...hs(d).btn, background:d.accent, color:d.accentText, padding:"6px 12px"}} onClick={()=>handleAccept(f)}>Accept</button>
+                      <button style={hs(d).btnSm} onClick={()=>handleDecline(f)}>Decline</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {pendingSent.length>0 && (
+            <div>
+              <div style={{ fontSize:11, fontWeight:700, color:d.text3, textTransform:"uppercase", letterSpacing:".08em", marginBottom:8 }}>Sent</div>
+              {pendingSent.map(f=>{
+                const p=profiles[f.addressee_id];
+                return (
+                  <div key={f.id} style={{...hs(d).card, display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8}}>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      <AvatarCircle name={p?.profile_name} size={36} fontSize={14}/>
+                      <span style={{ fontWeight:600, color:d.text }}>{p?.profile_name||"Loading..."}</span>
+                    </div>
+                    <span style={{ fontSize:12, color:d.text3, background:d.surface2, border:`1px solid ${d.border}`, padding:"3px 10px", borderRadius:20 }}>Pending</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {!pendingReceived.length&&!pendingSent.length&&<Empty icon="" title="No pending requests" desc="Search for friends or share your link" d={d}/>}
+        </>
+      )}
+
+      {/* Search */}
+      {tab==="search" && (
+        <>
+          <div style={{ display:"flex", gap:8, marginBottom:16 }}>
+            <input style={{...hs(d).input, flex:1}} placeholder="Search by name or email..." value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSearch()} />
+            <button style={{...hs(d).btn, background:d.accent, color:d.accentText}} onClick={handleSearch} disabled={searching}>{searching?"...":"Search"}</button>
+          </div>
+          {searchResults.length===0&&searchQuery&&!searching&&<Empty icon="" title="No results" desc="Try a different name or full email address" d={d}/>}
+          {searchResults.map(r=>{
+            const rel=friendships.find(f=>(f.requester_id===userId&&f.addressee_id===r.user_id)||(f.addressee_id===userId&&f.requester_id===r.user_id));
+            const statusLabel=rel?(rel.status==="accepted"?"Friends":"Pending"):null;
+            return (
+              <div key={r.user_id} style={{...hs(d).card, display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8, gap:12}}>
+                <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+                  <div style={{ width:40, height:40, borderRadius:"50%", background:d.accentSoft, color:d.accentHover, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:700, flexShrink:0 }}>{r.profile_name.charAt(0).toUpperCase()}</div>
+                  <div>
+                    <div style={{ fontWeight:600, color:d.text }}>{r.profile_name}</div>
+                    <div style={{ fontSize:12, color:d.text3 }}>{splitName(r.split_id||"")}</div>
+                  </div>
+                </div>
+                {statusLabel
+                  ? <span style={{ fontSize:12, color:d.text3 }}>{statusLabel}</span>
+                  : <button style={{...hs(d).btn, background:d.accent, color:d.accentText, padding:"6px 12px"}} onClick={()=>handleAdd(r.user_id)}>Add</button>
+                }
+              </div>
+            );
+          })}
+        </>
+      )}
+    </div>
+  );
+}
+
+function FriendProfile({ userId, profile, onBack, onRemove, isMobile, d }) {
+  const [workouts, setWorkouts] = useState(null);
+  const [bwLog, setBwLog]       = useState(null);
+  const [loading, setLoading]   = useState(true);
+
+  useEffect(()=>{
+    async function load() {
+      try {
+        const [w, bw] = await Promise.all([fetchWorkouts(userId), fetchBodyWeight(userId)]);
+        setWorkouts(w); setBwLog(bw);
+      } catch { setWorkouts([]); setBwLog([]); }
+      setLoading(false);
+    }
+    load();
+  }, [userId]);
+
+  const prs     = useMemo(()=>workouts?calcPRs(workouts):{}, [workouts]);
+  const streak  = useMemo(()=>workouts?calcStreak(workouts):0, [workouts]);
+  const latestBW= useMemo(()=>bwLog?.length?[...bwLog].sort((a,b)=>b.date-a.date)[0]:null, [bwLog]);
+  const recentWorkouts = useMemo(()=>workouts?[...workouts].sort((a,b)=>b.date-a.date).slice(0,5):[], [workouts]);
+  const prRows  = Object.entries(prs).map(([id,pr])=>({id,pr,ex:DEFAULT_EXERCISES.find(e=>e.id===id)})).filter(r=>r.ex).sort((a,b)=>b.pr.date-a.pr.date).slice(0,8);
+
+  return (
+    <div>
+      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+        <button onClick={onBack} style={hs(d).btnSm}>← Back</button>
+        {onRemove && <button onClick={onRemove} style={{...hs(d).btnSm, color:d.danger}}>Remove Friend</button>}
+      </div>
+
+      <div style={{ display:"flex", alignItems:"center", gap:16, marginBottom:20 }}>
+        <div style={{ width:64, height:64, borderRadius:"50%", background:d.accentSoft, color:d.accentHover, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, fontWeight:800 }}>
+          {(profile?.profile_name||"?").charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <h1 style={{...hs(d).h1, marginBottom:6}}>{profile?.profile_name||"Friend"}</h1>
+          <div style={{ display:"flex", gap:14, fontSize:13, color:d.text3, flexWrap:"wrap" }}>
+            {streak>0 && <span style={{ color:d.green, fontWeight:700 }}>🔥 {streak} day streak</span>}
+            {profile?.height_in && <span>{fmtHeight(profile.height_in)}</span>}
+            {latestBW && <span>{latestBW.weight} lbs</span>}
+            {profile?.split_id && <span>{splitName(profile.split_id)}</span>}
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ color:d.text3, fontSize:14, padding:"40px 0", textAlign:"center" }}>Loading...</div>
+      ) : (
+        <>
+          <div style={{...hs(d).card, marginBottom:16}}>
+            <h3 style={hs(d).h3}>Recent Workouts</h3>
+            {recentWorkouts.length
+              ? recentWorkouts.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={DEFAULT_EXERCISES} onDelete={null} typeLabels={{}} isMobile={isMobile} d={d}/>)
+              : <Empty icon="" title="No workouts yet" d={d}/>
+            }
+          </div>
+          {prRows.length>0 && (
+            <div style={hs(d).card}>
+              <h3 style={hs(d).h3}>Top Lifts</h3>
+              <div style={{ overflowX:"auto" }}>
+                <table style={{ width:"100%", minWidth:isMobile?400:"auto", borderCollapse:"collapse", fontSize:13 }}>
+                  <thead><tr>{["Exercise","Best","Est. 1RM"].map(h=><th key={h} style={hs(d).th}>{h}</th>)}</tr></thead>
+                  <tbody>
+                    {prRows.map(({id,pr,ex})=>(
+                      <tr key={id}>
+                        <td style={{...hs(d).td,fontWeight:600}}>{ex.name}</td>
+                        <td style={hs(d).td}>{pr.weight} lbs × {pr.reps}</td>
+                        <td style={{...hs(d).td,color:d.text2}}>{Math.round(pr.weight*(1+pr.reps/30))} lbs</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 // EMPTY / ICONS
 function Empty({ icon, title, desc, d }) {
   return (
@@ -1591,3 +2105,4 @@ function TrendIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fi
 function ListIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg>; }
 function ScaleIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6l9-3 9 3"/><path d="M3 6v14a1 1 0 001 1h16a1 1 0 001-1V6"/><path d="M12 3v18"/></svg>; }
 function UserIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>; }
+function UsersIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>; }
