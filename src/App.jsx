@@ -1098,9 +1098,9 @@ function MainApp({ session, d, dark, toggleDark }) {
 
       {/* Mobile top logo bar */}
       {isMobile && (
-        <div style={{ position:"fixed", top:0, left:0, right:0, height:52, background:d.surface, borderBottom:`1px solid ${d.border}`, display:"flex", alignItems:"center", justifyContent:"space-between", paddingLeft:16, paddingRight:12, zIndex:40 }}>
-          <img src="/logo.png" alt="PeakSet" style={{ height:28, width:"auto" }} />
-          <button onClick={toggleDark} style={{ background:"none", border:`1px solid ${d.border}`, borderRadius:8, padding:"6px 10px", cursor:"pointer", color:d.text2, display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600 }}>
+        <div style={{ position:"fixed", top:0, left:0, right:0, height:56, background:"transparent", display:"flex", alignItems:"center", justifyContent:"center", paddingRight:12, zIndex:40 }}>
+          <img src="/logo-full.png" alt="PeakSet" style={{ height:34, width:"auto" }} />
+          <button onClick={toggleDark} style={{ position:"absolute", right:12, background:"none", border:`1px solid ${d.border}`, borderRadius:8, padding:"6px 10px", cursor:"pointer", color:d.text2, display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600 }}>
             {dark ? <><SunIcon/> Light</> : <><MoonIcon/> Dark</>}
           </button>
         </div>
@@ -1184,10 +1184,10 @@ function ProgressHub({ tab, setTab, workouts, prs, bwLog, allEx, deleteWorkout, 
   return (
     <div>
       <h1 style={hs(d).h1}>Progress</h1>
-      <div style={{ display:"flex", gap:6, marginBottom:24, overflowX:"auto", paddingBottom:2 }}>
+      <div style={{ display:"grid", gridTemplateColumns:isMobile?"repeat(3, 1fr)":"repeat(5, auto)", gap:6, marginBottom:24 }}>
         {tabs.map(t => (
           <button key={t.id} onClick={()=>setTab(t.id)}
-            style={{ padding:"7px 16px", borderRadius:20, border:`1px solid ${tab===t.id?d.accent:d.border}`, background:tab===t.id?d.accentSoft:"transparent", color:tab===t.id?d.accent:d.text2, fontSize:13, fontWeight:tab===t.id?700:500, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.15s" }}>
+            style={{ padding:isMobile?"7px 4px":"7px 16px", borderRadius:20, border:`1px solid ${tab===t.id?d.accent:d.border}`, background:tab===t.id?d.accentSoft:"transparent", color:tab===t.id?d.accent:d.text2, fontSize:13, fontWeight:tab===t.id?700:500, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.15s", textAlign:"center" }}>
             {t.label}
           </button>
         ))}
