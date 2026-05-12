@@ -2503,7 +2503,6 @@ function heatColor(rank, total) {
 }
 
 function MuscleHeatmap({ prs, allEx, bwLog, d }) {
-  const [view, setView]         = useState("front");
   const [selected, setSelected] = useState(null);
   const [hovered, setHovered]   = useState(null);
   const scores = useMemo(() => computeMuscleScores(prs, allEx, bwLog), [prs, allEx, bwLog]);
@@ -2516,93 +2515,67 @@ function MuscleHeatmap({ prs, allEx, bwLog, d }) {
     const on = selected === key || hovered === key;
     const color = s ? heatColor(s.rank, s.total) : null;
     return {
-      fill: s ? color + (on ? "ff" : "cc") : "rgba(0,0,0,0)",
+      fill: s ? color + (on ? "ff" : "dd") : "rgba(0,0,0,0)",
       cursor: s ? "pointer" : "default",
-      filter: on && s ? "url(#mg)" : "none",
-      stroke: on && s ? "rgba(255,255,255,0.55)" : "none",
-      strokeWidth: 1.5,
-      style: { transition:"fill 0.2s" },
+      stroke: s ? "rgba(255,255,255,0.8)" : "none",
+      strokeWidth: 1.2,
+      style: { transition:"fill 0.2s", filter: on && s ? "brightness(1.18)" : "none" },
       onClick: s ? () => setSelected(selected === key ? null : key) : undefined,
       onMouseEnter: s ? () => setHovered(key) : undefined,
       onMouseLeave: () => setHovered(null),
     };
   }
 
-  // Garmin-style: solid gray silhouette base
-  const G = "#8c95a6";  // body gray
+  const G = "#c8cdd6";
   const bf = { fill: G };
+  // white internal muscle-separator lines
+  const WL = { fill:"none", stroke:"rgba(255,255,255,0.72)", strokeWidth:1.1, strokeLinecap:"round", pointerEvents:"none" };
 
-  const svgDefs = (
-    <defs>
-      <filter id="mg" x="-30%" y="-30%" width="160%" height="160%">
-        <feGaussianBlur stdDeviation="3" result="b"/>
-        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-  );
-
-  // Shared silhouette shapes — arms spread ~35° like reference image. viewBox 280×520.
   const silhouette = (
     <>
-      {/* HEAD */}
       <ellipse cx="140" cy="28" rx="21" ry="25" {...bf}/>
-      {/* NECK */}
       <path d="M132,51 L131,68 L149,68 L148,51 Z" {...bf}/>
-      {/* TORSO */}
       <path d="M93,68 C80,72 73,84 72,98 C71,114 73,132 75,150 C77,166 82,180 87,192 C92,203 99,212 107,218 L140,222 L173,218 C181,212 188,203 193,192 C198,180 203,166 205,150 C207,132 209,114 208,98 C207,84 200,72 187,68 Z" {...bf}/>
-      {/* HIPS */}
       <path d="M107,218 C102,226 100,236 100,246 L140,250 L180,246 C180,236 178,226 173,218 Z" {...bf}/>
-      {/* LEFT SHOULDER CAP */}
       <path d="M73,72 C62,76 54,86 50,98 C46,110 49,124 57,130 C65,136 75,132 82,124 C89,116 92,104 89,92 C86,80 78,72 73,72 Z" {...bf}/>
-      {/* RIGHT SHOULDER CAP */}
       <path d="M207,72 C218,76 226,86 230,98 C234,110 231,124 223,130 C215,136 205,132 198,124 C191,116 188,104 191,92 C194,80 202,72 207,72 Z" {...bf}/>
-      {/* LEFT UPPER ARM (spread ~35°) */}
       <path d="M58,94 C50,100 40,120 30,144 C24,162 20,178 22,190 C24,198 31,202 39,197 C47,193 54,177 62,155 C70,132 78,108 80,96 C76,90 64,89 58,94 Z" {...bf}/>
-      {/* RIGHT UPPER ARM */}
       <path d="M222,94 C230,100 240,120 250,144 C256,162 260,178 258,190 C256,198 249,202 241,197 C233,193 226,177 218,155 C210,132 202,108 200,96 C204,90 216,89 222,94 Z" {...bf}/>
-      {/* LEFT FOREARM */}
       <path d="M22,190 C16,200 8,224 4,246 C0,262 2,274 8,278 C14,282 23,276 29,260 C37,240 45,214 47,196 C43,189 28,185 22,190 Z" {...bf}/>
-      {/* RIGHT FOREARM */}
       <path d="M258,190 C264,200 272,224 276,246 C280,262 278,274 272,278 C266,282 257,276 251,260 C243,240 235,214 233,196 C237,189 252,185 258,190 Z" {...bf}/>
-      {/* LEFT HAND */}
       <path d="M6,276 C4,284 4,294 6,302 C7,306 10,308 13,306 L15,302 L17,310 L20,310 L21,303 L23,310 L26,310 L26,302 L28,307 L30,305 L29,296 C31,288 31,278 27,272 C23,266 14,265 8,269 Z" {...bf}/>
-      {/* RIGHT HAND */}
       <path d="M274,276 C276,284 276,294 274,302 C273,306 270,308 267,306 L265,302 L263,310 L260,310 L259,303 L257,310 L254,310 L254,302 L252,307 L250,305 L251,296 C249,288 249,278 253,272 C257,266 266,265 272,269 Z" {...bf}/>
-      {/* LEFT THIGH */}
       <path d="M101,248 C98,268 97,292 99,314 C101,332 106,346 113,352 L131,352 C137,346 140,330 141,308 C142,284 140,260 136,244 C131,232 120,228 111,230 Z" {...bf}/>
-      {/* RIGHT THIGH */}
       <path d="M179,248 C182,268 183,292 181,314 C179,332 174,346 167,352 L149,352 C143,346 140,330 139,308 C138,284 140,260 144,244 C149,232 160,228 169,230 Z" {...bf}/>
-      {/* LEFT KNEE */}
       <ellipse cx="122" cy="358" rx="15" ry="9" {...bf}/>
-      {/* RIGHT KNEE */}
       <ellipse cx="158" cy="358" rx="15" ry="9" {...bf}/>
-      {/* LEFT CALF */}
       <path d="M106,367 C102,384 102,404 106,422 C109,436 115,446 121,448 L129,448 C134,444 137,435 138,420 C139,402 137,382 133,367 Z" {...bf}/>
-      {/* RIGHT CALF */}
       <path d="M154,367 C158,384 158,404 154,422 C151,436 145,446 139,448 L131,448 C126,444 123,435 122,420 C121,402 123,382 127,367 Z" {...bf}/>
-      {/* LEFT FOOT */}
       <path d="M107,448 L105,460 C96,464 86,468 84,472 L131,472 L131,448 Z" {...bf}/>
-      {/* RIGHT FOOT */}
       <path d="M133,448 L135,460 C144,464 154,468 156,472 L109,472 L109,448 Z" {...bf}/>
     </>
   );
 
+  const svgStyle = { width:"100%", maxWidth:155, display:"block" };
+
   const frontSvg = (
-    <svg viewBox="0 0 280 488" style={{ width:"100%", maxWidth:230, display:"block" }}>
-      {svgDefs}
+    <svg viewBox="0 0 280 488" style={svgStyle}>
       {silhouette}
-      {/* CHEST left pec - fan from sternum */}
+      {/* CHEST */}
       <path d="M140,84 C124,80 106,81 96,91 C91,97 91,109 95,118 C99,127 109,132 120,132 C131,132 139,126 140,118 Z" {...mp("chest")}/>
-      {/* CHEST right pec */}
       <path d="M140,84 C156,80 174,81 184,91 C189,97 189,109 185,118 C181,127 171,132 160,132 C149,132 141,126 140,118 Z" {...mp("chest")}/>
-      {/* SHOULDERS left anterior delt */}
+      <path d="M140,86 L140,120" {...WL}/>
+      <path d="M98,105 C112,109 126,110 140,110 C154,110 168,109 182,105" {...WL}/>
+      {/* SHOULDERS */}
       <path d="M51,90 C45,98 43,112 48,123 C52,132 60,136 69,133 C78,129 83,118 80,106 C77,94 67,86 57,87 Z" {...mp("shoulders")}/>
-      {/* SHOULDERS right */}
       <path d="M229,90 C235,98 237,112 232,123 C228,132 220,136 211,133 C202,129 197,118 200,106 C203,94 213,86 223,87 Z" {...mp("shoulders")}/>
-      {/* BICEPS left */}
+      <path d="M50,108 C58,113 68,115 79,111" {...WL}/>
+      <path d="M230,108 C222,113 212,115 201,111" {...WL}/>
+      {/* BICEPS */}
       <path d="M20,104 C16,118 16,136 20,149 C23,160 29,167 36,164 C41,160 43,149 42,134 C41,120 38,106 34,99 C28,96 22,99 20,104 Z" {...mp("biceps")}/>
-      {/* BICEPS right */}
       <path d="M260,104 C264,118 264,136 260,149 C257,160 251,167 244,164 C239,160 237,149 238,134 C239,120 242,106 246,99 C252,96 258,99 260,104 Z" {...mp("biceps")}/>
+      <path d="M20,130 C27,133 35,133 43,130" {...WL}/>
+      <path d="M260,130 C253,133 245,133 237,130" {...WL}/>
       {/* ABS 6-pack */}
       <rect x="122" y="136" width="14" height="14" rx="4" {...mp("abs")}/>
       <rect x="144" y="136" width="14" height="14" rx="4" {...mp("abs")}/>
@@ -2613,50 +2586,64 @@ function MuscleHeatmap({ prs, allEx, bwLog, d }) {
       {/* Obliques */}
       <path d="M80,132 C77,146 77,162 80,174 C83,183 88,189 94,190 L98,176 C95,168 94,157 94,146 C94,136 95,127 98,120 C91,120 84,124 80,132 Z" {...mp("abs")}/>
       <path d="M200,132 C203,146 203,162 200,174 C197,183 192,189 186,190 L182,176 C185,168 186,157 186,146 C186,136 185,127 182,120 C189,120 196,124 200,132 Z" {...mp("abs")}/>
-      {/* QUADS left */}
+      {/* QUADS */}
       <path d="M101,252 C98,272 98,296 101,317 C104,332 109,344 115,348 L131,348 C136,342 139,328 140,306 C141,282 139,258 134,242 C129,230 120,226 112,229 Z" {...mp("quads")}/>
-      {/* QUADS right */}
       <path d="M179,252 C182,272 182,296 179,317 C176,332 171,344 165,348 L149,348 C144,342 141,328 140,306 C139,282 141,258 146,242 C151,230 160,226 168,229 Z" {...mp("quads")}/>
-      {/* CALVES left */}
+      {/* quad head dividers */}
+      <path d="M118,252 C118,276 118,302 117,332" {...WL}/>
+      <path d="M128,250 C129,274 129,300 128,330" {...WL}/>
+      <path d="M162,252 C162,276 162,302 163,332" {...WL}/>
+      <path d="M152,250 C151,274 151,300 152,330" {...WL}/>
+      {/* CALVES */}
       <path d="M107,370 C104,387 104,407 108,424 C111,437 117,446 122,447 L129,447 C134,443 137,434 138,419 C139,400 136,380 132,370 Z" {...mp("calves")}/>
-      {/* CALVES right */}
       <path d="M153,370 C156,387 156,407 152,424 C149,437 143,446 138,447 L131,447 C126,443 123,434 122,419 C121,400 124,380 128,370 Z" {...mp("calves")}/>
+      <path d="M120,372 C120,395 120,418 120,442" {...WL}/>
+      <path d="M140,372 C140,395 140,418 140,442" {...WL}/>
     </svg>
   );
 
   const backSvg = (
-    <svg viewBox="0 0 280 488" style={{ width:"100%", maxWidth:230, display:"block" }}>
-      {svgDefs}
+    <svg viewBox="0 0 280 488" style={svgStyle}>
       {silhouette}
       {/* TRAPS */}
       <path d="M128,54 C113,61 99,71 95,82 C93,90 95,99 104,104 C115,110 128,110 140,108 C152,110 165,110 176,104 C185,99 187,90 185,82 C181,71 167,61 152,54 Z" {...mp("traps")}/>
-      {/* REAR DELTS left */}
+      <path d="M140,56 L140,106" {...WL}/>
+      <path d="M108,74 C120,79 130,81 140,81 C150,81 160,79 172,74" {...WL}/>
+      {/* REAR DELTS */}
       <path d="M51,90 C45,98 43,112 48,123 C52,132 60,136 69,133 C78,129 83,118 80,106 C77,94 67,86 57,87 Z" {...mp("reardelts")}/>
-      {/* REAR DELTS right */}
       <path d="M229,90 C235,98 237,112 232,123 C228,132 220,136 211,133 C202,129 197,118 200,106 C203,94 213,86 223,87 Z" {...mp("reardelts")}/>
-      {/* TRICEPS left */}
+      {/* TRICEPS */}
       <path d="M20,104 C16,118 16,136 20,149 C23,160 29,167 36,164 C41,160 43,149 42,134 C41,120 38,106 34,99 C28,96 22,99 20,104 Z" {...mp("triceps")}/>
-      {/* TRICEPS right */}
       <path d="M260,104 C264,118 264,136 260,149 C257,160 251,167 244,164 C239,160 237,149 238,134 C239,120 242,106 246,99 C252,96 258,99 260,104 Z" {...mp("triceps")}/>
-      {/* LATS left — large V shape */}
+      <path d="M20,120 C27,122 35,122 43,120" {...WL}/>
+      <path d="M20,142 C27,144 35,144 43,142" {...WL}/>
+      <path d="M260,120 C253,122 245,122 237,120" {...WL}/>
+      <path d="M260,142 C253,144 245,144 237,142" {...WL}/>
+      {/* LATS */}
       <path d="M74,94 C70,110 69,128 71,146 C73,162 79,174 86,180 C90,184 94,185 98,183 L99,173 C97,162 95,146 94,130 C93,114 94,98 96,87 C88,85 80,88 74,94 Z" {...mp("lats")}/>
-      {/* LATS right */}
       <path d="M206,94 C210,110 211,128 209,146 C207,162 201,174 194,180 C190,184 186,185 182,183 L181,173 C183,162 185,146 186,130 C187,114 186,98 184,87 C192,85 200,88 206,94 Z" {...mp("lats")}/>
-      {/* ERECTOR SPINAE / middle back */}
+      <path d="M76,112 C82,120 88,124 97,126" {...WL}/>
+      <path d="M74,132 C80,140 87,144 97,146" {...WL}/>
+      <path d="M204,112 C198,120 192,124 183,126" {...WL}/>
+      <path d="M206,132 C200,140 193,144 183,146" {...WL}/>
+      {/* ERECTORS */}
       <rect x="130" y="104" width="9" height="82" rx="4" {...mp("back")}/>
       <rect x="141" y="104" width="9" height="82" rx="4" {...mp("back")}/>
-      {/* GLUTES left */}
+      {/* GLUTES */}
       <path d="M104,228 C100,242 100,258 106,270 C111,281 119,287 128,286 C137,285 143,276 143,264 C143,250 137,234 130,224 C124,216 113,215 104,220 Z" {...mp("glutes")}/>
-      {/* GLUTES right */}
       <path d="M176,228 C180,242 180,258 174,270 C169,281 161,287 152,286 C143,285 137,276 137,264 C137,250 143,234 150,224 C156,216 167,215 176,220 Z" {...mp("glutes")}/>
-      {/* HAMSTRINGS left */}
+      <path d="M108,237 C118,233 130,233 140,237" {...WL}/>
+      <path d="M172,237 C162,233 150,233 140,237" {...WL}/>
+      {/* HAMSTRINGS */}
       <path d="M101,252 C98,272 98,296 101,317 C104,332 109,344 115,348 L131,348 C136,342 139,328 140,306 C141,282 139,258 134,242 C129,230 120,226 112,229 Z" {...mp("hamstrings")}/>
-      {/* HAMSTRINGS right */}
       <path d="M179,252 C182,272 182,296 179,317 C176,332 171,344 165,348 L149,348 C144,342 141,328 140,306 C139,282 141,258 146,242 C151,230 160,226 168,229 Z" {...mp("hamstrings")}/>
-      {/* CALVES left (gastrocnemius) */}
+      <path d="M120,255 C120,282 120,308 120,340" {...WL}/>
+      <path d="M160,255 C160,282 160,308 160,340" {...WL}/>
+      {/* CALVES */}
       <path d="M107,370 C104,387 104,407 108,424 C111,437 117,446 122,447 L129,447 C134,443 137,434 138,419 C139,400 136,380 132,370 Z" {...mp("calves")}/>
-      {/* CALVES right */}
       <path d="M153,370 C156,387 156,407 152,424 C149,437 143,446 138,447 L131,447 C126,443 123,434 122,419 C121,400 124,380 128,370 Z" {...mp("calves")}/>
+      <path d="M120,372 C120,395 120,418 120,442" {...WL}/>
+      <path d="M140,372 C140,395 140,418 140,442" {...WL}/>
     </svg>
   );
 
@@ -2665,24 +2652,24 @@ function MuscleHeatmap({ prs, allEx, bwLog, d }) {
       <h1 style={hs(d).h1}>Muscle Map</h1>
       <p style={hs(d).sub}>{bw ? `Ranked by strength ÷ ${bw} lb bodyweight` : "Log bodyweight to see relative strength ratios"}</p>
 
-      <div style={{ display:"flex", gap:6, marginBottom:20 }}>
-        {["front","back"].map(v => (
-          <button key={v} onClick={() => setView(v)}
-            style={{ padding:"8px 22px", borderRadius:20, border:"none", cursor:"pointer", fontSize:13, fontWeight:600, transition:"all 0.15s",
-              background: view===v ? d.accent : d.surface2, color: view===v ? "#fff" : d.text2 }}>
-            {v==="front" ? "Front" : "Back"}
-          </button>
-        ))}
-      </div>
-
       {Object.keys(scores).length === 0 ? (
         <Empty icon={<DumbbellIcon size={24}/>} title="No PR data yet" desc="Log workouts to build your muscle strength map." d={d}/>
       ) : (
         <div style={{ display:"flex", gap:16, flexWrap:"wrap", alignItems:"flex-start" }}>
 
           <div style={{ flex:"0 0 auto", background:d.surface, borderRadius:20, padding:"20px 12px 14px", display:"flex", flexDirection:"column", alignItems:"center", border:`1px solid ${d.border}` }}>
-            {view==="front" ? frontSvg : backSvg}
-            <div style={{ width:"100%", maxWidth:230, marginTop:14 }}>
+            {/* Front + Back side by side */}
+            <div style={{ display:"flex", gap:6, alignItems:"flex-start" }}>
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+                <span style={{ fontSize:10, fontWeight:600, color:d.text3, textTransform:"uppercase", letterSpacing:"0.06em" }}>Front</span>
+                {frontSvg}
+              </div>
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+                <span style={{ fontSize:10, fontWeight:600, color:d.text3, textTransform:"uppercase", letterSpacing:"0.06em" }}>Back</span>
+                {backSvg}
+              </div>
+            </div>
+            <div style={{ width:"100%", marginTop:14 }}>
               <div style={{ height:5, borderRadius:3, background:"linear-gradient(to right,hsl(240,85%,62%),hsl(195,80%,52%),hsl(140,65%,46%),hsl(65,85%,56%),hsl(28,90%,52%),hsl(0,88%,56%))" }}/>
               <div style={{ display:"flex", justifyContent:"space-between", fontSize:10, color:d.text3, marginTop:5 }}>
                 <span>Weakest</span><span>Strongest</span>
