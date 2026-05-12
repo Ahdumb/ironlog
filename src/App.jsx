@@ -433,7 +433,7 @@ function AuthPage({ d, dark, toggleDark }) {
       return;
     }
     setError("");
-    setSignupStep(step => Math.min(step + 1, 2));
+    setSignupStep(step => Math.min(step + 1, 3));
   }
 
   async function signInWithGoogle() {
@@ -474,6 +474,122 @@ function AuthPage({ d, dark, toggleDark }) {
       return;
     }
     handleSubmit();
+  }
+
+  const SIGNUP_STEPS = [
+    { title:"Create your account",   sub:"Start tracking your training today." },
+    { title:"Tell us about you",     sub:"We'll use this to set up your profile." },
+    { title:"Choose your split",     sub:"Pick the training split that fits your schedule." },
+    { title:"Your goals",            sub:"We'll personalize your experience around these." },
+  ];
+
+  if (mode === "signup" && signupStep > 0) {
+    const stepInfo = SIGNUP_STEPS[signupStep];
+    return (
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100dvh", background:d.bg, padding:24, boxSizing:"border-box" }}>
+        <div style={{ width:"100%", maxWidth:480 }}>
+          <div style={{ marginBottom:28 }}>
+            <div style={{ fontSize:15, fontWeight:800, letterSpacing:".08em", textTransform:"uppercase", color:d.accent, marginBottom:10 }}>PeakSet</div>
+            <div style={{ display:"flex", gap:6, marginBottom:20 }}>
+              {[1,2,3].map(i=>(
+                <div key={i} style={{ flex:1, height:4, borderRadius:20, background:i<=signupStep?d.accent:d.border }} />
+              ))}
+            </div>
+            <div style={{ fontSize:24, fontWeight:800, letterSpacing:"-0.6px", color:d.text, marginBottom:4 }}>{stepInfo.title}</div>
+            <div style={{ fontSize:14, color:d.text3 }}>{stepInfo.sub}</div>
+          </div>
+
+          <div style={{ background:d.surface, border:`1px solid ${d.border}`, borderRadius:18, padding:28, boxShadow:"0 4px 24px rgba(0,0,0,.08)" }}>
+            {signupStep===1&&(
+              <>
+                <div style={{ marginBottom:16 }}>
+                  <label style={hs(d).label}>Your Name</label>
+                  <input style={hs(d).input} type="text" placeholder="Adam" value={profileName} onChange={e=>setProfileName(e.target.value)} autoFocus />
+                </div>
+                <div style={{ marginBottom:16 }}>
+                  <label style={hs(d).label}>Body Weight (lbs)</label>
+                  <input style={hs(d).input} type="number" min="1" placeholder="185" value={weight} onChange={e=>setWeight(e.target.value)} />
+                </div>
+                <div>
+                  <label style={hs(d).label}>Height</label>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                    <div style={{ position:"relative" }}>
+                      <input style={hs(d).input} type="number" min="1" placeholder="5" value={heightFt} onChange={e=>setHeightFt(e.target.value)} />
+                      <span style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", fontSize:12, color:d.text3, pointerEvents:"none" }}>ft</span>
+                    </div>
+                    <div style={{ position:"relative" }}>
+                      <input style={hs(d).input} type="number" min="0" max="11" placeholder="10" value={heightIn} onChange={e=>setHeightIn(e.target.value)} />
+                      <span style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", fontSize:12, color:d.text3, pointerEvents:"none" }}>in</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {signupStep===2&&(
+              <div style={{ display:"grid", gap:10 }}>
+                {[...SPLIT_TEMPLATES, { id:"custom", name:"Custom", desc:"Start blank and build your own after signup." }].map(split=>(
+                  <button key={split.id} onClick={()=>setSplitId(split.id)} style={{ border:`2px solid ${splitId===split.id?d.accent:d.border}`, background:splitId===split.id?d.accentSoft:d.surface2, color:d.text, borderRadius:12, padding:"12px 16px", textAlign:"left", cursor:"pointer", transition:"border-color 0.15s, background 0.15s" }}>
+                    <div style={{ fontSize:14, fontWeight:700, color:splitId===split.id?d.accent:d.text }}>{split.name}</div>
+                    <div style={{ fontSize:12, color:d.text3, marginTop:3 }}>{split.desc}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {signupStep===3&&(
+              <>
+                <div style={{ marginBottom:20 }}>
+                  <div style={{ fontSize:13, fontWeight:700, color:d.text2, marginBottom:10, textTransform:"uppercase", letterSpacing:".06em" }}>Experience Level</div>
+                  <div style={{ display:"grid", gap:8 }}>
+                    {[
+                      { id:"beginner",     name:"New to the Gym",  desc:"Just getting started." },
+                      { id:"intermediate", name:"Intermediate",    desc:"1–3 years of consistent training." },
+                      { id:"expert",       name:"Expert",          desc:"3+ years, advanced programming." },
+                    ].map(opt=>(
+                      <button key={opt.id} onClick={()=>setExperience(opt.id)} style={{ border:`2px solid ${experience===opt.id?d.accent:d.border}`, background:experience===opt.id?d.accentSoft:d.surface2, color:d.text, borderRadius:12, padding:"12px 16px", textAlign:"left", cursor:"pointer", transition:"border-color 0.15s, background 0.15s" }}>
+                        <div style={{ fontSize:14, fontWeight:700, color:experience===opt.id?d.accent:d.text }}>{opt.name}</div>
+                        <div style={{ fontSize:12, color:d.text3, marginTop:3 }}>{opt.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:700, color:d.text2, marginBottom:10, textTransform:"uppercase", letterSpacing:".06em" }}>Your Goal</div>
+                  <div style={{ display:"grid", gap:8 }}>
+                    {[
+                      { id:"muscle",      name:"Build Muscle",  desc:"Hypertrophy and strength gains." },
+                      { id:"lose_weight", name:"Lose Weight",   desc:"Fat loss while keeping muscle." },
+                      { id:"both",        name:"Both",          desc:"Body recomposition." },
+                    ].map(opt=>(
+                      <button key={opt.id} onClick={()=>setGoal(opt.id)} style={{ border:`2px solid ${goal===opt.id?d.accent:d.border}`, background:goal===opt.id?d.accentSoft:d.surface2, color:d.text, borderRadius:12, padding:"12px 16px", textAlign:"left", cursor:"pointer", transition:"border-color 0.15s, background 0.15s" }}>
+                        <div style={{ fontSize:14, fontWeight:700, color:goal===opt.id?d.accent:d.text }}>{opt.name}</div>
+                        <div style={{ fontSize:12, color:d.text3, marginTop:3 }}>{opt.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {error && <div style={{ background:d.dangerBg, color:d.danger, borderRadius:8, padding:"10px 14px", fontSize:13, marginTop:16 }}>{error}</div>}
+
+            <div style={{ display:"flex", gap:10, marginTop:24 }}>
+              <button onClick={()=>{setError("");setSignupStep(s=>s-1);}} style={{ ...hs(d).btn, background:d.surface2, color:d.text2, border:`1px solid ${d.border}`, padding:"12px 20px", fontSize:14 }}>
+                Back
+              </button>
+              <button onClick={handlePrimary} disabled={loading} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, flex:1, justifyContent:"center", padding:12, fontSize:15, fontWeight:700, opacity:loading?.6:1 }}>
+                {loading ? "..." : signupStep < 3 ? "Continue" : "Create Account"}
+              </button>
+            </div>
+          </div>
+
+          <button onClick={toggleDark} style={{ display:"block", margin:"18px auto 0", background:"none", border:"none", color:d.text3, fontSize:12, cursor:"pointer" }}>
+            {dark ? "Light mode" : "Dark mode"}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -518,111 +634,23 @@ function AuthPage({ d, dark, toggleDark }) {
           <div style={{ flex:1, height:1, background:d.border }} />
         </div>
 
-        {mode==="signup"&&!success&&(
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:6, marginBottom:18 }}>
-            {["Account","Profile","Split"].map((step, i)=>(
-              <div key={step} style={{ height:5, borderRadius:20, background:i<=signupStep?d.accent:d.border }} title={step} />
-            ))}
-          </div>
-        )}
-
         {success ? (
           <div style={{ background:d.accentSoft, color:d.accentHover, borderRadius:10, padding:"12px 16px", fontSize:13, marginBottom:16 }}>{success}</div>
         ) : (
           <>
-            {(mode==="login" || signupStep===0)&&(
-              <>
-                <div style={{ marginBottom:12 }}>
-                  <label style={hs(d).label}>Email</label>
-                  <input style={hs(d).input} type="email" placeholder="you@email.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handlePrimary()} autoFocus />
-                </div>
-                <div style={{ marginBottom:mode==="signup"?8:20 }}>
-                  <label style={hs(d).label}>Password</label>
-                  <input style={hs(d).input} type="password" placeholder="********" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handlePrimary()} />
-                </div>
-                {mode==="signup"&&<p style={{ color:d.text3, fontSize:12, lineHeight:1.45, margin:"0 0 18px" }}>Use an email you can access. Supabase may ask you to confirm it before signing in.</p>}
-              </>
-            )}
-
-            {mode==="signup"&&signupStep===1&&(
-              <>
-                <div style={{ marginBottom:12 }}>
-                  <label style={hs(d).label}>Profile Name</label>
-                  <input style={hs(d).input} type="text" placeholder="Adam" value={profileName} onChange={e=>setProfileName(e.target.value)} />
-                </div>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:12 }}>
-                  <div>
-                    <label style={hs(d).label}>Weight</label>
-                    <input style={hs(d).input} type="number" min="1" placeholder="185" value={weight} onChange={e=>setWeight(e.target.value)} />
-                  </div>
-                  <div>
-                    <label style={hs(d).label}>Height ft</label>
-                    <input style={hs(d).input} type="number" min="1" placeholder="5" value={heightFt} onChange={e=>setHeightFt(e.target.value)} />
-                  </div>
-                  <div>
-                    <label style={hs(d).label}>Height in</label>
-                    <input style={hs(d).input} type="number" min="0" max="11" placeholder="10" value={heightIn} onChange={e=>setHeightIn(e.target.value)} />
-                  </div>
-                </div>
-              </>
-            )}
-
-            {mode==="signup"&&signupStep===2&&(
-              <div style={{ marginBottom:18 }}>
-                <label style={hs(d).label}>Workout Split</label>
-                <div style={{ display:"grid", gap:8 }}>
-                  {[...SPLIT_TEMPLATES, { id:"custom", name:"Custom", desc:"Start blank and build your own after signup." }].map(split=>(
-                    <button key={split.id} onClick={()=>setSplitId(split.id)} style={{ border:`1px solid ${splitId===split.id?d.accent:d.border}`, background:splitId===split.id?d.accentSoft:d.surface, color:d.text, borderRadius:10, padding:"10px 12px", textAlign:"left", cursor:"pointer" }}>
-                      <div style={{ fontSize:13, fontWeight:800, color:splitId===split.id?d.accentHover:d.text }}>{split.name}</div>
-                      <div style={{ fontSize:11, color:d.text3, marginTop:2 }}>{split.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {mode==="signup"&&signupStep===3&&(
-              <div style={{ marginBottom:18 }}>
-                <label style={hs(d).label}>Experience Level</label>
-                <div style={{ display:"grid", gap:8, marginBottom:18 }}>
-                  {[
-                    { id:"beginner",     name:"New to the Gym",  desc:"Just getting started and building foundations." },
-                    { id:"intermediate", name:"Intermediate",    desc:"1–3 years of consistent training." },
-                    { id:"expert",       name:"Expert",          desc:"3+ years, familiar with programming and progressive overload." },
-                  ].map(opt=>(
-                    <button key={opt.id} onClick={()=>setExperience(opt.id)} style={{ border:`1px solid ${experience===opt.id?d.accent:d.border}`, background:experience===opt.id?d.accentSoft:d.surface, color:d.text, borderRadius:10, padding:"10px 12px", textAlign:"left", cursor:"pointer" }}>
-                      <div style={{ fontSize:13, fontWeight:800, color:experience===opt.id?d.accentHover:d.text }}>{opt.name}</div>
-                      <div style={{ fontSize:11, color:d.text3, marginTop:2 }}>{opt.desc}</div>
-                    </button>
-                  ))}
-                </div>
-                <label style={hs(d).label}>Your Goal</label>
-                <div style={{ display:"grid", gap:8 }}>
-                  {[
-                    { id:"muscle",      name:"Build Muscle",  desc:"Focused on hypertrophy and getting stronger." },
-                    { id:"lose_weight", name:"Lose Weight",   desc:"Fat loss while maintaining muscle mass." },
-                    { id:"both",        name:"Both",          desc:"Body recomposition — gain muscle and lose fat." },
-                  ].map(opt=>(
-                    <button key={opt.id} onClick={()=>setGoal(opt.id)} style={{ border:`1px solid ${goal===opt.id?d.accent:d.border}`, background:goal===opt.id?d.accentSoft:d.surface, color:d.text, borderRadius:10, padding:"10px 12px", textAlign:"left", cursor:"pointer" }}>
-                      <div style={{ fontSize:13, fontWeight:800, color:goal===opt.id?d.accentHover:d.text }}>{opt.name}</div>
-                      <div style={{ fontSize:11, color:d.text3, marginTop:2 }}>{opt.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {error && <div style={{ background:d.dangerBg, color:d.danger, borderRadius:8, padding:"10px 14px", fontSize:13, marginBottom:14 }}>{error}</div>}
-            <div style={{ display:"flex", gap:10 }}>
-              {mode==="signup"&&signupStep>0&&(
-                <button onClick={()=>{setError("");setSignupStep(step=>step-1);}} disabled={loading} style={{ ...hs(d).btn, background:d.surface2, color:d.text2, border:`1px solid ${d.border}`, justifyContent:"center", padding:12, fontSize:14, flex:0.45 }}>
-                  Back
-                </button>
-              )}
-              <button onClick={handlePrimary} disabled={loading} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, flex:1, justifyContent:"center", padding:12, fontSize:14, opacity:loading?.6:1 }}>
-                {loading ? "..." : mode==="login" ? "Sign In" : signupStep<3 ? "Continue" : "Create Account"}
-              </button>
+            <div style={{ marginBottom:12 }}>
+              <label style={hs(d).label}>Email</label>
+              <input style={hs(d).input} type="email" placeholder="you@email.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handlePrimary()} autoFocus />
             </div>
+            <div style={{ marginBottom:mode==="signup"?8:20 }}>
+              <label style={hs(d).label}>Password</label>
+              <input style={hs(d).input} type="password" placeholder="********" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handlePrimary()} />
+            </div>
+            {mode==="signup"&&<p style={{ color:d.text3, fontSize:12, lineHeight:1.45, margin:"0 0 18px" }}>Use an email you can access. Supabase may ask you to confirm it before signing in.</p>}
+            {error && <div style={{ background:d.dangerBg, color:d.danger, borderRadius:8, padding:"10px 14px", fontSize:13, marginBottom:14 }}>{error}</div>}
+            <button onClick={handlePrimary} disabled={loading} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, width:"100%", justifyContent:"center", padding:12, fontSize:14, opacity:loading?.6:1 }}>
+              {loading ? "..." : mode==="login" ? "Sign In" : "Continue"}
+            </button>
           </>
         )}
 
