@@ -544,7 +544,7 @@ function AuthPage({ d, dark, toggleDark }) {
           {/* Header */}
           <div style={{ marginBottom:32 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
-              <div style={{ fontSize:14, fontWeight:800, letterSpacing:".1em", textTransform:"uppercase", color:"rgba(255,255,255,0.35)" }}>PeakSet</div>
+              <img src="/logo-full.png" alt="PeakSet" style={{ height:22, width:"auto", opacity:0.55 }} />
               <div style={{ fontSize:13, color:"rgba(255,255,255,0.3)", fontWeight:500 }}>Step {signupStep} of {totalSteps}</div>
             </div>
             {/* Progress bar */}
@@ -676,7 +676,7 @@ function AuthPage({ d, dark, toggleDark }) {
         {mode==="signup"&&(
           <div style={{ padding:34, background:`linear-gradient(145deg, ${d.accentHover}, ${d.accent})`, color:"#fff", display:"flex", flexDirection:"column", justifyContent:"space-between", minHeight:520 }}>
             <div>
-              <div style={{ fontSize:13, fontWeight:800, letterSpacing:".12em", textTransform:"uppercase", opacity:.78, marginBottom:18 }}>PeakSet</div>
+              <img src="/logo-full.png" alt="PeakSet" style={{ height:26, width:"auto", marginBottom:18 }} />
               <h1 style={{ fontSize:34, lineHeight:1.02, margin:"0 0 14px", letterSpacing:"-1px" }}>Start with your actual plan.</h1>
               <p style={{ margin:0, fontSize:15, lineHeight:1.5, opacity:.88 }}>Build around your body, your split, and the numbers you want to move.</p>
             </div>
@@ -689,7 +689,7 @@ function AuthPage({ d, dark, toggleDark }) {
         )}
         <div style={{ padding:36 }}>
         <div style={{ marginBottom:28, textAlign:mode==="signup"?"left":"center" }}>
-          <div style={{ fontSize:28, fontWeight:700, letterSpacing:"-1px", color:d.text }}>PeakSet</div>
+          <img src="/logo-full.png" alt="PeakSet" style={{ height:36, width:"auto", display:"block" }} />
           <div style={{ fontSize:13, color:d.text3, marginTop:4 }}>{mode==="signup"?"Create your training profile":"Train. Track. Progress."}</div>
         </div>
 
