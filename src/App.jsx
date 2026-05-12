@@ -304,8 +304,8 @@ function hs(d) {
     h1:   { fontSize:28, fontWeight:800, letterSpacing:"-0.8px", marginBottom:4, color:d.text, lineHeight:1.15 },
     h3:   { fontSize:14, fontWeight:700, marginBottom:12, color:d.text },
     sub:  { color:d.text3, fontSize:13, marginBottom:24, lineHeight:1.5 },
-    card: { background:d.surface, border:`1px solid ${d.border}`, borderRadius:16, padding:20, boxShadow:"0 1px 4px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04)" },
-    btn:  { display:"inline-flex", alignItems:"center", gap:6, padding:"9px 18px", borderRadius:10, fontSize:13, fontWeight:600, cursor:"pointer", border:"none", transition:"opacity 0.15s, background 0.15s" },
+    card: { background:d.surface, border:`1px solid ${d.border}`, borderRadius:16, padding:20, boxShadow:"0 2px 8px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05)" },
+    btn:  { display:"inline-flex", alignItems:"center", gap:6, padding:"9px 18px", borderRadius:10, fontSize:13, fontWeight:600, cursor:"pointer", border:"none", transition:"opacity 0.15s, background 0.15s, transform 0.1s" },
     btnSm:{ display:"inline-flex", alignItems:"center", background:d.surface2, color:d.text2, border:`1px solid ${d.border}`, borderRadius:8, padding:"5px 11px", fontSize:12, cursor:"pointer", transition:"background 0.15s" },
     input:{ fontFamily:"inherit", fontSize:14, border:`1px solid ${d.border}`, borderRadius:10, padding:"10px 14px", background:d.surface, color:d.text, outline:"none", width:"100%", boxSizing:"border-box", transition:"border-color 0.15s" },
     label:{ fontSize:12, fontWeight:600, color:d.text2, display:"block", marginBottom:5, letterSpacing:"0.01em" },
@@ -483,10 +483,10 @@ function AuthPage({ d, dark, toggleDark }) {
   }
 
   const SIGNUP_STEPS = [
-    { num:1, icon:"👤", title:"About you",        sub:"Set up your profile so we can personalize everything." },
-    { num:2, icon:"📅", title:"Your split",        sub:"Pick the training schedule that fits your life." },
-    { num:3, icon:"🎯", title:"Your goals",        sub:"We'll tailor your experience around these." },
-    { num:4, icon:"🏋️", title:"Your starting PRs", sub:"Log your best lifts — or skip and add them later." },
+    { num:1, icon:<UserIcon/>,     title:"About you",        sub:"Set up your profile so we can personalize everything." },
+    { num:2, icon:<CalendarIcon/>, title:"Your split",        sub:"Pick the training schedule that fits your life." },
+    { num:3, icon:<TargetIcon/>,   title:"Your goals",        sub:"We'll tailor your experience around these." },
+    { num:4, icon:<DumbbellIcon/>, title:"Your starting PRs", sub:"Log your best lifts — or skip and add them later." },
   ];
 
   function setPR(lift, field, val) {
@@ -499,7 +499,7 @@ function AuthPage({ d, dark, toggleDark }) {
 
     const onboardBg = "linear-gradient(135deg, #0d0d12 0%, #111827 50%, #0d1117 100%)";
 
-    function PRCard({ lift, label, emoji }) {
+    function PRCard({ lift, label }) {
       const pr = initialPRs[lift];
       const est = pr.w && parseFloat(pr.w) > 0
         ? Math.round(parseFloat(pr.w) * (1 + pr.r / 30))
@@ -507,7 +507,7 @@ function AuthPage({ d, dark, toggleDark }) {
       return (
         <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.10)", borderRadius:16, padding:20 }}>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
-            <span style={{ fontSize:22 }}>{emoji}</span>
+            <div style={{ width:32, height:32, borderRadius:8, background:"rgba(59,130,246,0.2)", color:"#93C5FD", display:"flex", alignItems:"center", justifyContent:"center" }}><DumbbellIcon size={16}/></div>
             <div style={{ fontSize:16, fontWeight:800, color:"#fff" }}>{label}</div>
             {est && <div style={{ marginLeft:"auto", fontSize:12, fontWeight:700, color:d.accent, background:`${d.accent}22`, borderRadius:8, padding:"3px 10px" }}>~{est} lbs 1RM</div>}
           </div>
@@ -553,7 +553,7 @@ function AuthPage({ d, dark, toggleDark }) {
                 <div key={i} style={{ flex:1, height:3, borderRadius:99, background: i < signupStep ? d.accent : "rgba(255,255,255,0.12)", transition:"background 0.3s" }} />
               ))}
             </div>
-            <div style={{ fontSize:32, marginBottom:8 }}>{stepInfo.icon}</div>
+            <div style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:48, height:48, borderRadius:14, background:"rgba(59,130,246,0.25)", color:"#93C5FD", marginBottom:14 }}>{stepInfo.icon}</div>
             <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.8px", color:"#fff", marginBottom:6 }}>{stepInfo.title}</div>
             <div style={{ fontSize:15, color:"rgba(255,255,255,0.45)", lineHeight:1.5 }}>{stepInfo.sub}</div>
           </div>
@@ -641,9 +641,9 @@ function AuthPage({ d, dark, toggleDark }) {
 
             {signupStep===4&&(
               <div style={{ display:"grid", gap:14 }}>
-                <PRCard lift="bench"    label="Bench Press" emoji="🫸" />
-                <PRCard lift="squat"    label="Squat"       emoji="🦵" />
-                <PRCard lift="deadlift" label="Deadlift"    emoji="⬆️" />
+                <PRCard lift="bench"    label="Bench Press" />
+                <PRCard lift="squat"    label="Squat"       />
+                <PRCard lift="deadlift" label="Deadlift"    />
                 <div style={{ fontSize:12, color:"rgba(255,255,255,0.3)", textAlign:"center", marginTop:4 }}>All fields optional — skip to fill in later</div>
               </div>
             )}
@@ -1052,7 +1052,7 @@ function MainApp({ session, d, dark, toggleDark }) {
     const active = page === n.id;
     return (
       <button key={n.id} onClick={()=>n.id==="log"?handleNavigateToLog():navigate(n.id)}
-        style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 12px", margin:"1px 8px", borderRadius:10, cursor:"pointer", fontSize:13, fontWeight:active?600:500, border:"none", background:active?d.accentSoft:"transparent", color:active?d.accent:d.text2, width:"calc(100% - 16px)", textAlign:"left", boxShadow:active?`inset 3px 0 0 ${d.accent}`:"none", transition:"background 0.15s, color 0.15s" }}>
+        style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 12px", margin:"1px 8px", borderRadius:10, cursor:"pointer", fontSize:13, fontWeight:active?600:500, border:"none", background:active?d.accentSoft:"transparent", color:active?d.accent:d.text2, width:"calc(100% - 16px)", textAlign:"left", transition:"background 0.15s, color 0.15s" }}>
         {n.icon}
         <span>{n.label}</span>
         {n.badge ? <span style={{ background:d.danger, color:"#fff", borderRadius:20, fontSize:10, fontWeight:700, padding:"1px 5px", marginLeft:"auto" }}>{n.badge}</span> : null}
@@ -1089,8 +1089,8 @@ function MainApp({ session, d, dark, toggleDark }) {
           {sideNavBtn({ id:"profile", label:"Profile", icon:<UserIcon /> })}
 
           <div style={{ marginTop:"auto", padding:10, borderTop:`1px solid ${d.border}`, display:"flex", flexDirection:"column", gap:6 }}>
-            {streak > 0 && <div style={{ background:d.secondarySoft, color:d.secondary, fontSize:12, fontWeight:700, padding:"8px 12px", borderRadius:10, display:"flex", alignItems:"center", gap:6 }}>🔥 <strong>{streak}</strong> day streak</div>}
-            <button onClick={toggleDark} style={{ background:d.surface2, border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 12px", fontSize:12, fontWeight:600, cursor:"pointer", color:d.text2 }}>{dark ? "☀️ Light Mode" : "🌙 Dark Mode"}</button>
+            {streak > 0 && <div style={{ background:d.secondarySoft, color:d.secondary, fontSize:12, fontWeight:700, padding:"8px 12px", borderRadius:10, display:"flex", alignItems:"center", gap:6 }}><FireIcon size={13}/> <strong>{streak}</strong> day streak</div>}
+            <button onClick={toggleDark} style={{ background:d.surface2, border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 12px", fontSize:12, fontWeight:600, cursor:"pointer", color:d.text2, display:"flex", alignItems:"center", gap:6 }}>{dark ? <><SunIcon/> Light Mode</> : <><MoonIcon/> Dark Mode</>}</button>
             <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 12px", fontSize:12, fontWeight:600, cursor:"pointer", color:d.text3 }}>Sign Out</button>
           </div>
         </aside>
@@ -1098,8 +1098,11 @@ function MainApp({ session, d, dark, toggleDark }) {
 
       {/* Mobile top logo bar */}
       {isMobile && (
-        <div style={{ position:"fixed", top:0, left:0, right:0, height:52, background:d.surface, borderBottom:`1px solid ${d.border}`, display:"flex", alignItems:"center", paddingLeft:16, zIndex:40 }}>
+        <div style={{ position:"fixed", top:0, left:0, right:0, height:52, background:d.surface, borderBottom:`1px solid ${d.border}`, display:"flex", alignItems:"center", justifyContent:"space-between", paddingLeft:16, paddingRight:12, zIndex:40 }}>
           <img src="/logo.png" alt="PeakSet" style={{ height:28, width:"auto" }} />
+          <button onClick={toggleDark} style={{ background:"none", border:`1px solid ${d.border}`, borderRadius:8, padding:"6px 10px", cursor:"pointer", color:d.text2, display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600 }}>
+            {dark ? <><SunIcon/> Light</> : <><MoonIcon/> Dark</>}
+          </button>
         </div>
       )}
 
@@ -1144,7 +1147,7 @@ function MainApp({ session, d, dark, toggleDark }) {
       {friendAddTarget && (
         <div style={hs(d).overlay} onClick={()=>setFriendAddTarget(null)}>
           <div style={{...hs(d).modal, maxWidth:340}} onClick={e=>e.stopPropagation()}>
-            <div style={{ fontSize:32, textAlign:"center", marginBottom:8 }}>👋</div>
+            <div style={{ display:"flex", justifyContent:"center", marginBottom:12 }}><div style={{ width:52, height:52, borderRadius:16, background:d.accentSoft, color:d.accent, display:"flex", alignItems:"center", justifyContent:"center" }}><UsersIcon/></div></div>
             <h3 style={{ fontSize:18, fontWeight:700, color:d.text, textAlign:"center", marginBottom:6 }}>Add Friend?</h3>
             <p style={{ fontSize:14, color:d.text2, textAlign:"center", margin:"0 0 20px" }}>Send a friend request to <strong>{friendAddTarget.profile.profile_name}</strong>?</p>
             <div style={{ display:"flex", gap:8 }}>
@@ -1214,19 +1217,19 @@ function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeL
   const hasSquatData = workouts.some(w=>w.exercises?.some(e=>e.id==="squat"));
 
   const actionCards = [
-    { icon:"💪", title:"Start Workout", desc:"Log today's lift.", action:()=>navigate("log"), accent:true },
-    { icon:"📋", title:"Use a Routine", desc:"Follow a saved plan.", action:()=>navigate("routines") },
-    { icon:"⚖️", title:"Track Weight",  desc:"Log today's body weight.", action:()=>navigate("progress",null,"bodyweight") },
+    { icon:<DumbbellIcon size={isMobile?18:20}/>, title:"Start Workout", desc:"Log today's lift.",        action:()=>navigate("log"),                          accent:true },
+    { icon:<CalendarIcon size={isMobile?18:20}/>, title:"Use a Routine", desc:"Follow a saved plan.",     action:()=>navigate("routines") },
+    { icon:<WeightScaleIcon size={isMobile?18:20}/>, title:"Track Weight", desc:"Log today's body weight.", action:()=>navigate("progress",null,"bodyweight") },
   ];
 
   return (
     <div style={{ maxWidth:760 }}>
       {/* Hero */}
       <div style={{ marginBottom:28 }}>
-        <div style={{ fontSize:isMobile?22:28, fontWeight:900, letterSpacing:"-0.8px", color:d.text, lineHeight:1.15, marginBottom:6 }}>
+        <div style={{ fontSize:isMobile?24:32, fontWeight:900, letterSpacing:"-1px", color:d.text, lineHeight:1.1, marginBottom:6 }}>
           {greeting}, {name}.
         </div>
-        <div style={{ fontSize:15, color:d.text3 }}>
+        <div style={{ fontSize:14, color:d.text3, lineHeight:1.5 }}>
           {workouts.length === 0 ? "Welcome to PeakSet — start your first workout below." : `${thisWeek} workout${thisWeek!==1?"s":""} this week. Keep it up.`}
         </div>
       </div>
@@ -1234,8 +1237,10 @@ function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeL
       {/* Action cards */}
       <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr 1fr 1fr":"repeat(3,1fr)", gap:10, marginBottom:24 }}>
         {actionCards.map(c=>(
-          <button key={c.title} onClick={c.action} style={{ ...hs(d).card, border:"none", background:c.accent?d.accentSoft:d.surface, cursor:"pointer", textAlign:"left", padding:isMobile?14:18, transition:"box-shadow 0.15s" }}>
-            <div style={{ fontSize:isMobile?20:24, marginBottom:8 }}>{c.icon}</div>
+          <button key={c.title} onClick={c.action} style={{ ...hs(d).card, border:"none", background:c.accent?d.accentSoft:d.surface, cursor:"pointer", textAlign:"left", padding:isMobile?14:18, transition:"box-shadow 0.15s, transform 0.15s" }}
+            onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 6px 20px rgba(0,0,0,.12)";}}
+            onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 2px 8px rgba(0,0,0,.08)";}}>
+            <div style={{ width:isMobile?34:38, height:isMobile?34:38, borderRadius:10, background:c.accent?d.accent:d.surface2, color:c.accent?"#fff":d.text2, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:10 }}>{c.icon}</div>
             <div style={{ fontSize:isMobile?12:14, fontWeight:700, color:c.accent?d.accent:d.text, marginBottom:3 }}>{c.title}</div>
             {!isMobile && <div style={{ fontSize:12, color:d.text3 }}>{c.desc}</div>}
           </button>
@@ -1266,10 +1271,10 @@ function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeL
         {recent.length
           ? recent.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={allEx} onDelete={deleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d}/>)
           : (
-            <div style={{ textAlign:"center", padding:"28px 0" }}>
-              <div style={{ fontSize:32, marginBottom:10 }}>🏋️</div>
+            <div style={{ textAlign:"center", padding:"32px 0" }}>
+              <div style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:56, height:56, borderRadius:16, background:d.surface2, color:d.text3, marginBottom:16 }}><DumbbellIcon size={24}/></div>
               <div style={{ fontSize:15, fontWeight:700, color:d.text, marginBottom:6 }}>No workouts yet</div>
-              <div style={{ fontSize:13, color:d.text3, marginBottom:16 }}>Log your first session to start tracking your progress.</div>
+              <div style={{ fontSize:13, color:d.text3, marginBottom:20, lineHeight:1.5 }}>Log your first session to start tracking your progress.</div>
               <button onClick={()=>navigate("log")} style={{ ...hs(d).btn, background:d.accent, color:d.accentText }}>Start Workout</button>
             </div>
           )
@@ -1519,9 +1524,9 @@ function Profile({ profile, email, prs, bwLog, allEx, selectedSplitId, userId, i
 
 function StatCard({ val, label, d }) {
   return (
-    <div style={{...hs(d).card, textAlign:"center", padding:"16px 12px"}}>
-      <div style={{ fontSize:26, fontWeight:800, letterSpacing:"-1px", color:d.secondary, lineHeight:1.1 }}>{val}</div>
-      <div style={{ fontSize:10, color:d.text3, marginTop:5, fontWeight:600, textTransform:"uppercase", letterSpacing:".08em" }}>{label}</div>
+    <div style={{ background:d.surface, border:`1px solid ${d.border}`, borderRadius:16, padding:"18px 12px", textAlign:"center", boxShadow:"0 2px 8px rgba(0,0,0,.06)" }}>
+      <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-1.5px", color:d.secondary, lineHeight:1 }}>{val}</div>
+      <div style={{ fontSize:10, color:d.text3, marginTop:6, fontWeight:700, textTransform:"uppercase", letterSpacing:".1em" }}>{label}</div>
     </div>
   );
 }
@@ -1572,7 +1577,7 @@ function WorkoutEntry({ w, prs, allEx, onDelete, typeLabels, isMobile, d }) {
         </div>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
           {onDelete && <button style={{ background:d.dangerBg, color:d.danger, border:"none", borderRadius:6, padding:"4px 10px", fontSize:12, fontWeight:600, cursor:"pointer" }} onClick={e=>{e.stopPropagation();onDelete(w.id)}}>Delete</button>}
-          <span style={{ color:d.text3, fontSize:12 }}>{open?"^":"v"}</span>
+          <span style={{ color:d.text3 }}>{open ? <ChevronUpIcon/> : <ChevronDownIcon/>}</span>
         </div>
       </div>
       {open && (
@@ -1742,7 +1747,7 @@ function LogWorkout({ logState, setLogState, workoutStarted, setWorkoutStarted, 
         </div>
         {!workoutStarted&&todayDay&&todayDay.type!=="rest"&&(
           <div style={{ display:"flex", alignItems:"center", gap:10, background:d.accentSoft, border:`1px solid ${d.accent}44`, borderRadius:8, padding:"10px 14px", marginTop:14, fontSize:13 }}>
-            <span style={{ fontSize:18 }}>📅</span>
+            <span style={{ color:d.accent }}><CalendarIcon size={16}/></span>
             <div>
               <span style={{ fontWeight:700, color:d.accentHover }}>{todayDay.day}: {typeLabel(todayDay.type, typeLabels)} Day</span>
               <span style={{ color:d.text2, marginLeft:6 }}>{logState.exercises.length > 0 ? `${logState.exercises.length} exercises pre-loaded from your split` : "Rest day — no exercises scheduled"}</span>
@@ -2117,7 +2122,7 @@ function RoutineDay({ day, prs, allEx, onStart, typeLabels, isMobile, d }) {
         </div>
         <div style={{ display:"flex", gap:8, alignItems:"center" }}>
           {day.type!=="rest"&&day.exercises.length>0&&<button style={{...hs(d).btn,background:d.accent,color:d.accentText,padding:"5px 12px",fontSize:12}} onClick={e=>{e.stopPropagation();onStart()}}>Start</button>}
-          <span style={{ color:d.text3, fontSize:12 }}>{open?"^":"v"}</span>
+          <span style={{ color:d.text3 }}>{open ? <ChevronUpIcon/> : <ChevronDownIcon/>}</span>
         </div>
       </div>
       {open&&(
@@ -2447,7 +2452,7 @@ function FriendProfile({ userId, profile, onBack, onRemove, isMobile, d }) {
 function Empty({ icon, title, desc, d }) {
   return (
     <div style={{ textAlign:"center", padding:"40px 24px", color:d?.text3||"#9c9c97" }}>
-      <div style={{ fontSize:36, marginBottom:10, opacity:.4 }}>{icon}</div>
+      <div style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", width:52, height:52, borderRadius:14, background:d?.surface2||"#f2f1ed", color:d?.text3||"#9c9c97", marginBottom:14 }}>{icon || <TargetIcon size={22}/>}</div>
       <div style={{ fontSize:15, fontWeight:600, color:d?.text2||"#6b6b67", marginBottom:4 }}>{title}</div>
       {desc&&<div style={{ fontSize:13 }}>{desc}</div>}
     </div>
@@ -2770,13 +2775,22 @@ function OneRepMax({ d }) {
   );
 }
 
-function GridIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>; }
-function PlusIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>; }
-function ClockIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>; }
-function TrendIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>; }
-function ListIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg>; }
-function ScaleIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6l9-3 9 3"/><path d="M3 6v14a1 1 0 001 1h16a1 1 0 001-1V6"/><path d="M12 3v18"/></svg>; }
-function UserIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>; }
-function UsersIcon() { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>; }
-function CalcIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>; }
-function BodyIcon()  { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="4" r="2"/><path d="M12 7v6"/><path d="M8 10h8"/><path d="M10 13l-2 7"/><path d="M14 13l2 7"/></svg>; }
+function GridIcon()     { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>; }
+function PlusIcon()     { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14"/></svg>; }
+function ClockIcon()    { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>; }
+function TrendIcon()    { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>; }
+function ListIcon()     { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="12" y2="16"/></svg>; }
+function ScaleIcon()    { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6l9-3 9 3"/><path d="M3 6v14a1 1 0 001 1h16a1 1 0 001-1V6"/><path d="M12 3v18"/></svg>; }
+function UserIcon()     { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg>; }
+function UsersIcon()    { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>; }
+function CalcIcon()     { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>; }
+function BodyIcon()     { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="4" r="2"/><path d="M12 7v6"/><path d="M8 10h8"/><path d="M10 13l-2 7"/><path d="M14 13l2 7"/></svg>; }
+function DumbbellIcon({ size=20 }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6.5 6.5h11"/><path d="M6.5 17.5h11"/><path d="M3 9.5h18v5H3z" rx="1"/><rect x="1" y="8" width="4" height="8" rx="1"/><rect x="19" y="8" width="4" height="8" rx="1"/></svg>; }
+function CalendarIcon({ size=20 }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>; }
+function WeightScaleIcon({ size=20 }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/><path d="M12 8v4"/></svg>; }
+function FireIcon({ size=14 })  { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 01-7 7 7 7 0 01-7-7c0-1.53.4-2.973 1-4.28.6 1 1.5 1.78 2.5 1.78z"/></svg>; }
+function SunIcon()      { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>; }
+function MoonIcon()     { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>; }
+function ChevronDownIcon({ size=12 }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>; }
+function ChevronUpIcon({ size=12 })   { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>; }
+function TargetIcon({ size=20 })      { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>; }
