@@ -1096,7 +1096,14 @@ function MainApp({ session, d, dark, toggleDark }) {
         </aside>
       )}
 
-      <main style={{ flex:1, overflowY:"auto", padding:isMobile?"16px 16px 90px":32 }}>
+      {/* Mobile top logo bar */}
+      {isMobile && (
+        <div style={{ position:"fixed", top:0, left:0, right:0, height:52, background:d.surface, borderBottom:`1px solid ${d.border}`, display:"flex", alignItems:"center", paddingLeft:16, zIndex:40 }}>
+          <img src="/logo.png" alt="PeakSet" style={{ height:28, width:"auto" }} />
+        </div>
+      )}
+
+      <main style={{ flex:1, overflowY:"auto", padding:isMobile?"72px 16px 90px":32 }}>
         {dataLoading ? (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", color:d.text3 }}>
             <div style={{ textAlign:"center" }}>
@@ -1125,8 +1132,8 @@ function MainApp({ session, d, dark, toggleDark }) {
             const active = page === n.id || (n.id==="progress" && ["history","prs","musclemap","bodyweight","calculator"].includes(page));
             return (
               <button key={n.id} onClick={()=>n.id==="log"?handleNavigateToLog():navigate(n.id)}
-                style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3, padding:"10px 4px 8px", border:"none", background:"none", cursor:"pointer", color:active?d.accent:d.text3, fontSize:10, fontWeight:active?700:500, transition:"color 0.15s" }}>
-                <span style={{ fontSize:20 }}>{n.icon}</span>
+                style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:2, padding:"8px 4px 6px", border:"none", background:"none", cursor:"pointer", color:active?d.accent:d.text3, fontSize:10, fontWeight:active?700:500, transition:"color 0.15s" }}>
+                <span style={{ display:"flex", alignItems:"center", justifyContent:"center", width:44, height:28, borderRadius:14, background:active?d.accentSoft:"transparent", transition:"background 0.2s", fontSize:18 }}>{n.icon}</span>
                 {n.label}
               </button>
             );
@@ -1227,7 +1234,7 @@ function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeL
       {/* Action cards */}
       <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr 1fr 1fr":"repeat(3,1fr)", gap:10, marginBottom:24 }}>
         {actionCards.map(c=>(
-          <button key={c.title} onClick={c.action} style={{ ...hs(d).card, border:c.accent?`1.5px solid ${d.accent}`:undefined, background:c.accent?d.accentSoft:d.surface, cursor:"pointer", textAlign:"left", padding:isMobile?14:18, transition:"box-shadow 0.15s" }}>
+          <button key={c.title} onClick={c.action} style={{ ...hs(d).card, border:"none", background:c.accent?d.accentSoft:d.surface, cursor:"pointer", textAlign:"left", padding:isMobile?14:18, transition:"box-shadow 0.15s" }}>
             <div style={{ fontSize:isMobile?20:24, marginBottom:8 }}>{c.icon}</div>
             <div style={{ fontSize:isMobile?12:14, fontWeight:700, color:c.accent?d.accent:d.text, marginBottom:3 }}>{c.title}</div>
             {!isMobile && <div style={{ fontSize:12, color:d.text3 }}>{c.desc}</div>}
