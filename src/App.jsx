@@ -398,6 +398,7 @@ function AuthPage({ d, dark, toggleDark }) {
   const [experience, setExperience] = useState("");
   const [goal, setGoal]           = useState("");
   const [signupStep, setSignupStep] = useState(0);
+  const [initialPRs, setInitialPRs] = useState({ bench:{w:"",r:5}, squat:{w:"",r:5}, deadlift:{w:"",r:5} });
   const [error, setError]   = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
@@ -433,7 +434,7 @@ function AuthPage({ d, dark, toggleDark }) {
       return;
     }
     setError("");
-    setSignupStep(step => Math.min(step + 1, 3));
+    setSignupStep(step => Math.min(step + 1, 4));
   }
 
   async function signInWithGoogle() {
@@ -457,10 +458,15 @@ function AuthPage({ d, dark, toggleDark }) {
         setLoading(false);
         return;
       }
+      const prData = {};
+      ["bench","squat","deadlift"].forEach(k => {
+        const w = parseFloat(initialPRs[k].w); const r = initialPRs[k].r;
+        if (w > 0) prData[k] = { w, r };
+      });
       const { error } = await supabase.auth.signUp({
         email,
         password:pass,
-        options:{ data:profile.data },
+        options:{ data:{ ...profile.data, initial_prs: Object.keys(prData).length ? prData : null } },
       });
       if (error) setError("Could not create account. Please try again.");
       else setSuccess("Account created! Check your email to confirm, then log in.");
@@ -469,7 +475,7 @@ function AuthPage({ d, dark, toggleDark }) {
   }
 
   function handlePrimary() {
-    if (mode === "signup" && signupStep < 3) {
+    if (mode === "signup" && signupStep < 4) {
       nextSignupStep();
       return;
     }
@@ -477,49 +483,107 @@ function AuthPage({ d, dark, toggleDark }) {
   }
 
   const SIGNUP_STEPS = [
-    { title:"Create your account",   sub:"Start tracking your training today." },
-    { title:"Tell us about you",     sub:"We'll use this to set up your profile." },
-    { title:"Choose your split",     sub:"Pick the training split that fits your schedule." },
-    { title:"Your goals",            sub:"We'll personalize your experience around these." },
+    { num:1, icon:"👤", title:"About you",        sub:"Set up your profile so we can personalize everything." },
+    { num:2, icon:"📅", title:"Your split",        sub:"Pick the training schedule that fits your life." },
+    { num:3, icon:"🎯", title:"Your goals",        sub:"We'll tailor your experience around these." },
+    { num:4, icon:"🏋️", title:"Your starting PRs", sub:"Log your best lifts — or skip and add them later." },
   ];
 
+  function setPR(lift, field, val) {
+    setInitialPRs(prev => ({ ...prev, [lift]:{ ...prev[lift], [field]:val } }));
+  }
+
   if (mode === "signup" && signupStep > 0) {
-    const stepInfo = SIGNUP_STEPS[signupStep];
+    const stepInfo = SIGNUP_STEPS[signupStep - 1];
+    const totalSteps = 4;
+
+    const onboardBg = "linear-gradient(135deg, #0d0d12 0%, #111827 50%, #0d1117 100%)";
+
+    function PRCard({ lift, label, emoji }) {
+      const pr = initialPRs[lift];
+      const est = pr.w && parseFloat(pr.w) > 0
+        ? Math.round(parseFloat(pr.w) * (1 + pr.r / 30))
+        : null;
+      return (
+        <div style={{ background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.10)", borderRadius:16, padding:20 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
+            <span style={{ fontSize:22 }}>{emoji}</span>
+            <div style={{ fontSize:16, fontWeight:800, color:"#fff" }}>{label}</div>
+            {est && <div style={{ marginLeft:"auto", fontSize:12, fontWeight:700, color:d.accent, background:`${d.accent}22`, borderRadius:8, padding:"3px 10px" }}>~{est} lbs 1RM</div>}
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+            <div>
+              <div style={{ fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.45)", marginBottom:6, textTransform:"uppercase", letterSpacing:".06em" }}>Weight (lbs)</div>
+              <input
+                type="number" min="1" placeholder="225"
+                value={pr.w}
+                onChange={e=>setPR(lift,"w",e.target.value)}
+                style={{ fontFamily:"inherit", fontSize:20, fontWeight:800, border:"1px solid rgba(255,255,255,0.14)", borderRadius:10, padding:"10px 14px", background:"rgba(255,255,255,0.06)", color:"#fff", outline:"none", width:"100%", boxSizing:"border-box" }}
+              />
+            </div>
+            <div>
+              <div style={{ fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.45)", marginBottom:6, textTransform:"uppercase", letterSpacing:".06em" }}>Reps</div>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                {[1,2,3,4,5,6,7,8,9,10].map(r=>(
+                  <button key={r} onClick={()=>setPR(lift,"r",r)}
+                    style={{ width:34, height:34, borderRadius:8, border:`1.5px solid ${pr.r===r?"#3B82F6":"rgba(255,255,255,0.14)"}`, background:pr.r===r?"#3B82F6":"rgba(255,255,255,0.05)", color:pr.r===r?"#fff":"rgba(255,255,255,0.6)", fontSize:13, fontWeight:700, cursor:"pointer" }}>
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100dvh", background:d.bg, padding:24, boxSizing:"border-box" }}>
-        <div style={{ width:"100%", maxWidth:480 }}>
-          <div style={{ marginBottom:28 }}>
-            <div style={{ fontSize:15, fontWeight:800, letterSpacing:".08em", textTransform:"uppercase", color:d.accent, marginBottom:10 }}>PeakSet</div>
-            <div style={{ display:"flex", gap:6, marginBottom:20 }}>
-              {[1,2,3].map(i=>(
-                <div key={i} style={{ flex:1, height:4, borderRadius:20, background:i<=signupStep?d.accent:d.border }} />
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100dvh", background:onboardBg, padding:"24px 16px", boxSizing:"border-box" }}>
+        <div style={{ width:"100%", maxWidth:500 }}>
+
+          {/* Header */}
+          <div style={{ marginBottom:32 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
+              <div style={{ fontSize:14, fontWeight:800, letterSpacing:".1em", textTransform:"uppercase", color:"rgba(255,255,255,0.35)" }}>PeakSet</div>
+              <div style={{ fontSize:13, color:"rgba(255,255,255,0.3)", fontWeight:500 }}>Step {signupStep} of {totalSteps}</div>
+            </div>
+            {/* Progress bar */}
+            <div style={{ display:"flex", gap:5, marginBottom:28 }}>
+              {Array.from({length:totalSteps},(_,i)=>(
+                <div key={i} style={{ flex:1, height:3, borderRadius:99, background: i < signupStep ? d.accent : "rgba(255,255,255,0.12)", transition:"background 0.3s" }} />
               ))}
             </div>
-            <div style={{ fontSize:24, fontWeight:800, letterSpacing:"-0.6px", color:d.text, marginBottom:4 }}>{stepInfo.title}</div>
-            <div style={{ fontSize:14, color:d.text3 }}>{stepInfo.sub}</div>
+            <div style={{ fontSize:32, marginBottom:8 }}>{stepInfo.icon}</div>
+            <div style={{ fontSize:28, fontWeight:900, letterSpacing:"-0.8px", color:"#fff", marginBottom:6 }}>{stepInfo.title}</div>
+            <div style={{ fontSize:15, color:"rgba(255,255,255,0.45)", lineHeight:1.5 }}>{stepInfo.sub}</div>
           </div>
 
-          <div style={{ background:d.surface, border:`1px solid ${d.border}`, borderRadius:18, padding:28, boxShadow:"0 4px 24px rgba(0,0,0,.08)" }}>
+          {/* Card */}
+          <div style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.10)", borderRadius:22, padding:28, backdropFilter:"blur(12px)", boxShadow:"0 24px 60px rgba(0,0,0,0.4)" }}>
+
             {signupStep===1&&(
               <>
                 <div style={{ marginBottom:16 }}>
-                  <label style={hs(d).label}>Your Name</label>
-                  <input style={hs(d).input} type="text" placeholder="Adam" value={profileName} onChange={e=>setProfileName(e.target.value)} autoFocus />
+                  <label style={{ display:"block", fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.45)", marginBottom:7, textTransform:"uppercase", letterSpacing:".06em" }}>Your Name</label>
+                  <input style={{ fontFamily:"inherit", fontSize:16, border:"1px solid rgba(255,255,255,0.14)", borderRadius:12, padding:"12px 16px", background:"rgba(255,255,255,0.06)", color:"#fff", outline:"none", width:"100%", boxSizing:"border-box" }} type="text" placeholder="Adam" value={profileName} onChange={e=>setProfileName(e.target.value)} autoFocus />
                 </div>
                 <div style={{ marginBottom:16 }}>
-                  <label style={hs(d).label}>Body Weight (lbs)</label>
-                  <input style={hs(d).input} type="number" min="1" placeholder="185" value={weight} onChange={e=>setWeight(e.target.value)} />
+                  <label style={{ display:"block", fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.45)", marginBottom:7, textTransform:"uppercase", letterSpacing:".06em" }}>Body Weight</label>
+                  <div style={{ position:"relative" }}>
+                    <input style={{ fontFamily:"inherit", fontSize:16, border:"1px solid rgba(255,255,255,0.14)", borderRadius:12, padding:"12px 16px", paddingRight:44, background:"rgba(255,255,255,0.06)", color:"#fff", outline:"none", width:"100%", boxSizing:"border-box" }} type="number" min="1" placeholder="185" value={weight} onChange={e=>setWeight(e.target.value)} />
+                    <span style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", fontSize:13, color:"rgba(255,255,255,0.35)", fontWeight:600, pointerEvents:"none" }}>lbs</span>
+                  </div>
                 </div>
                 <div>
-                  <label style={hs(d).label}>Height</label>
+                  <label style={{ display:"block", fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.45)", marginBottom:7, textTransform:"uppercase", letterSpacing:".06em" }}>Height</label>
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                     <div style={{ position:"relative" }}>
-                      <input style={hs(d).input} type="number" min="1" placeholder="5" value={heightFt} onChange={e=>setHeightFt(e.target.value)} />
-                      <span style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", fontSize:12, color:d.text3, pointerEvents:"none" }}>ft</span>
+                      <input style={{ fontFamily:"inherit", fontSize:16, border:"1px solid rgba(255,255,255,0.14)", borderRadius:12, padding:"12px 16px", paddingRight:36, background:"rgba(255,255,255,0.06)", color:"#fff", outline:"none", width:"100%", boxSizing:"border-box" }} type="number" min="1" placeholder="5" value={heightFt} onChange={e=>setHeightFt(e.target.value)} />
+                      <span style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", fontSize:13, color:"rgba(255,255,255,0.35)", fontWeight:600, pointerEvents:"none" }}>ft</span>
                     </div>
                     <div style={{ position:"relative" }}>
-                      <input style={hs(d).input} type="number" min="0" max="11" placeholder="10" value={heightIn} onChange={e=>setHeightIn(e.target.value)} />
-                      <span style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", fontSize:12, color:d.text3, pointerEvents:"none" }}>in</span>
+                      <input style={{ fontFamily:"inherit", fontSize:16, border:"1px solid rgba(255,255,255,0.14)", borderRadius:12, padding:"12px 16px", paddingRight:36, background:"rgba(255,255,255,0.06)", color:"#fff", outline:"none", width:"100%", boxSizing:"border-box" }} type="number" min="0" max="11" placeholder="10" value={heightIn} onChange={e=>setHeightIn(e.target.value)} />
+                      <span style={{ position:"absolute", right:14, top:"50%", transform:"translateY(-50%)", fontSize:13, color:"rgba(255,255,255,0.35)", fontWeight:600, pointerEvents:"none" }}>in</span>
                     </div>
                   </div>
                 </div>
@@ -529,9 +593,10 @@ function AuthPage({ d, dark, toggleDark }) {
             {signupStep===2&&(
               <div style={{ display:"grid", gap:10 }}>
                 {[...SPLIT_TEMPLATES, { id:"custom", name:"Custom", desc:"Start blank and build your own after signup." }].map(split=>(
-                  <button key={split.id} onClick={()=>setSplitId(split.id)} style={{ border:`2px solid ${splitId===split.id?d.accent:d.border}`, background:splitId===split.id?d.accentSoft:d.surface2, color:d.text, borderRadius:12, padding:"12px 16px", textAlign:"left", cursor:"pointer", transition:"border-color 0.15s, background 0.15s" }}>
-                    <div style={{ fontSize:14, fontWeight:700, color:splitId===split.id?d.accent:d.text }}>{split.name}</div>
-                    <div style={{ fontSize:12, color:d.text3, marginTop:3 }}>{split.desc}</div>
+                  <button key={split.id} onClick={()=>setSplitId(split.id)}
+                    style={{ border:`2px solid ${splitId===split.id?"#3B82F6":"rgba(255,255,255,0.10)"}`, background:splitId===split.id?"rgba(59,130,246,0.15)":"rgba(255,255,255,0.04)", color:"#fff", borderRadius:14, padding:"14px 18px", textAlign:"left", cursor:"pointer", transition:"all 0.15s" }}>
+                    <div style={{ fontSize:15, fontWeight:800, color:splitId===split.id?"#60A5FA":"rgba(255,255,255,0.9)" }}>{split.name}</div>
+                    <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:4 }}>{split.desc}</div>
                   </button>
                 ))}
               </div>
@@ -540,31 +605,33 @@ function AuthPage({ d, dark, toggleDark }) {
             {signupStep===3&&(
               <>
                 <div style={{ marginBottom:20 }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:d.text2, marginBottom:10, textTransform:"uppercase", letterSpacing:".06em" }}>Experience Level</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.4)", marginBottom:10, textTransform:"uppercase", letterSpacing:".08em" }}>Experience Level</div>
                   <div style={{ display:"grid", gap:8 }}>
                     {[
                       { id:"beginner",     name:"New to the Gym",  desc:"Just getting started." },
                       { id:"intermediate", name:"Intermediate",    desc:"1–3 years of consistent training." },
                       { id:"expert",       name:"Expert",          desc:"3+ years, advanced programming." },
                     ].map(opt=>(
-                      <button key={opt.id} onClick={()=>setExperience(opt.id)} style={{ border:`2px solid ${experience===opt.id?d.accent:d.border}`, background:experience===opt.id?d.accentSoft:d.surface2, color:d.text, borderRadius:12, padding:"12px 16px", textAlign:"left", cursor:"pointer", transition:"border-color 0.15s, background 0.15s" }}>
-                        <div style={{ fontSize:14, fontWeight:700, color:experience===opt.id?d.accent:d.text }}>{opt.name}</div>
-                        <div style={{ fontSize:12, color:d.text3, marginTop:3 }}>{opt.desc}</div>
+                      <button key={opt.id} onClick={()=>setExperience(opt.id)}
+                        style={{ border:`2px solid ${experience===opt.id?"#3B82F6":"rgba(255,255,255,0.10)"}`, background:experience===opt.id?"rgba(59,130,246,0.15)":"rgba(255,255,255,0.04)", color:"#fff", borderRadius:14, padding:"12px 18px", textAlign:"left", cursor:"pointer", transition:"all 0.15s" }}>
+                        <div style={{ fontSize:15, fontWeight:800, color:experience===opt.id?"#60A5FA":"rgba(255,255,255,0.9)" }}>{opt.name}</div>
+                        <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:3 }}>{opt.desc}</div>
                       </button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize:13, fontWeight:700, color:d.text2, marginBottom:10, textTransform:"uppercase", letterSpacing:".06em" }}>Your Goal</div>
+                  <div style={{ fontSize:12, fontWeight:700, color:"rgba(255,255,255,0.4)", marginBottom:10, textTransform:"uppercase", letterSpacing:".08em" }}>Your Goal</div>
                   <div style={{ display:"grid", gap:8 }}>
                     {[
                       { id:"muscle",      name:"Build Muscle",  desc:"Hypertrophy and strength gains." },
                       { id:"lose_weight", name:"Lose Weight",   desc:"Fat loss while keeping muscle." },
                       { id:"both",        name:"Both",          desc:"Body recomposition." },
                     ].map(opt=>(
-                      <button key={opt.id} onClick={()=>setGoal(opt.id)} style={{ border:`2px solid ${goal===opt.id?d.accent:d.border}`, background:goal===opt.id?d.accentSoft:d.surface2, color:d.text, borderRadius:12, padding:"12px 16px", textAlign:"left", cursor:"pointer", transition:"border-color 0.15s, background 0.15s" }}>
-                        <div style={{ fontSize:14, fontWeight:700, color:goal===opt.id?d.accent:d.text }}>{opt.name}</div>
-                        <div style={{ fontSize:12, color:d.text3, marginTop:3 }}>{opt.desc}</div>
+                      <button key={opt.id} onClick={()=>setGoal(opt.id)}
+                        style={{ border:`2px solid ${goal===opt.id?"#3B82F6":"rgba(255,255,255,0.10)"}`, background:goal===opt.id?"rgba(59,130,246,0.15)":"rgba(255,255,255,0.04)", color:"#fff", borderRadius:14, padding:"12px 18px", textAlign:"left", cursor:"pointer", transition:"all 0.15s" }}>
+                        <div style={{ fontSize:15, fontWeight:800, color:goal===opt.id?"#60A5FA":"rgba(255,255,255,0.9)" }}>{opt.name}</div>
+                        <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:3 }}>{opt.desc}</div>
                       </button>
                     ))}
                   </div>
@@ -572,19 +639,30 @@ function AuthPage({ d, dark, toggleDark }) {
               </>
             )}
 
-            {error && <div style={{ background:d.dangerBg, color:d.danger, borderRadius:8, padding:"10px 14px", fontSize:13, marginTop:16 }}>{error}</div>}
+            {signupStep===4&&(
+              <div style={{ display:"grid", gap:14 }}>
+                <PRCard lift="bench"    label="Bench Press" emoji="🫸" />
+                <PRCard lift="squat"    label="Squat"       emoji="🦵" />
+                <PRCard lift="deadlift" label="Deadlift"    emoji="⬆️" />
+                <div style={{ fontSize:12, color:"rgba(255,255,255,0.3)", textAlign:"center", marginTop:4 }}>All fields optional — skip to fill in later</div>
+              </div>
+            )}
+
+            {error && <div style={{ background:"rgba(239,68,68,0.15)", color:"#FCA5A5", borderRadius:10, padding:"10px 14px", fontSize:13, marginTop:16, border:"1px solid rgba(239,68,68,0.25)" }}>{error}</div>}
 
             <div style={{ display:"flex", gap:10, marginTop:24 }}>
-              <button onClick={()=>{setError("");setSignupStep(s=>s-1);}} style={{ ...hs(d).btn, background:d.surface2, color:d.text2, border:`1px solid ${d.border}`, padding:"12px 20px", fontSize:14 }}>
+              <button onClick={()=>{setError("");setSignupStep(s=>s-1);}}
+                style={{ display:"inline-flex", alignItems:"center", gap:6, padding:"12px 20px", borderRadius:12, fontSize:14, fontWeight:600, cursor:"pointer", border:"1px solid rgba(255,255,255,0.14)", background:"rgba(255,255,255,0.06)", color:"rgba(255,255,255,0.7)" }}>
                 Back
               </button>
-              <button onClick={handlePrimary} disabled={loading} style={{ ...hs(d).btn, background:d.accent, color:d.accentText, flex:1, justifyContent:"center", padding:12, fontSize:15, fontWeight:700, opacity:loading?.6:1 }}>
-                {loading ? "..." : signupStep < 3 ? "Continue" : "Create Account"}
+              <button onClick={handlePrimary} disabled={loading}
+                style={{ flex:1, display:"inline-flex", alignItems:"center", justifyContent:"center", gap:6, padding:"13px 20px", borderRadius:12, fontSize:15, fontWeight:800, cursor:"pointer", border:"none", background: signupStep===4 ? "linear-gradient(135deg,#2563EB,#1D4ED8)" : "linear-gradient(135deg,#3B82F6,#2563EB)", color:"#fff", boxShadow:"0 4px 20px rgba(59,130,246,0.35)", opacity:loading?0.6:1, letterSpacing:"-0.3px" }}>
+                {loading ? "Creating…" : signupStep < 4 ? "Continue →" : "Create Account"}
               </button>
             </div>
           </div>
 
-          <button onClick={toggleDark} style={{ display:"block", margin:"18px auto 0", background:"none", border:"none", color:d.text3, fontSize:12, cursor:"pointer" }}>
+          <button onClick={toggleDark} style={{ display:"block", margin:"18px auto 0", background:"none", border:"none", color:"rgba(255,255,255,0.2)", fontSize:12, cursor:"pointer" }}>
             {dark ? "Light mode" : "Dark mode"}
           </button>
         </div>
@@ -791,6 +869,7 @@ function MainApp({ session, d, dark, toggleDark }) {
     }
   });
   const [page, setPage]           = useState("dashboard");
+  const [progressTab, setProgressTab] = useState("history");
   const [logState, setLogState]   = useState({ type:"push", exercises:[], notes:"", date:new Date().toISOString().slice(0,10) });
   const [workoutStarted, setWorkoutStarted] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
@@ -861,12 +940,10 @@ function MainApp({ session, d, dark, toggleDark }) {
     localStorage.setItem("il_custom_routine", JSON.stringify(customRoutine));
   }, [customRoutine]);
 
-  function navigate(p, newLog) {
+  function navigate(p, newLog, tab) {
     setPage(p);
-    if (newLog) {
-      setLogState(newLog);
-      setWorkoutStarted(true);
-    }
+    if (newLog) { setLogState(newLog); setWorkoutStarted(true); }
+    if (tab) setProgressTab(tab);
   }
 
   function buildTodayLogState() {
@@ -913,7 +990,7 @@ function MainApp({ session, d, dark, toggleDark }) {
       setLogState({ type:workoutTypes[0] || "push", exercises:[], notes:"", date:new Date().toISOString().slice(0,10) });
       setWorkoutStarted(false);
       showToast("Workout saved");
-      navigate("history");
+      navigate("progress", null, "history");
     } catch (error) {
       showToast("Failed to save workout. Please try again.");
     }
@@ -958,65 +1035,68 @@ function MainApp({ session, d, dark, toggleDark }) {
   }
 
   const pendingRequestCount = friendships.filter(f => f.status === "pending" && f.addressee_id === userId).length;
-  const navItems = [
-    { id:"dashboard",  label:"Dashboard",        icon:<GridIcon /> },
-    { id:"log",        label:"Start Workout",    icon:<PlusIcon /> },
-    { id:"history",    label:"History",          icon:<ClockIcon /> },
-    { id:"prs",        label:"Personal Records", icon:<TrendIcon /> },
-    { id:"musclemap",  label:"Muscle Map",       icon:<BodyIcon /> },
-    { id:"bodyweight", label:"Body Weight",      icon:<ScaleIcon /> },
-    { id:"routines",   label:"Routines",         icon:<ListIcon /> },
-    { id:"social",     label:"Social",           icon:<UsersIcon />, badge: pendingRequestCount || null },
-    { id:"calculator", label:"1RM Calculator",   icon:<CalcIcon /> },
-    { id:"profile",    label:"Profile",          icon:<UserIcon /> },
+  const sideNavItems = [
+    { id:"dashboard", label:"Dashboard", icon:<GridIcon /> },
+    { id:"progress",  label:"Progress",  icon:<TrendIcon /> },
+    { id:"routines",  label:"Routines",  icon:<ListIcon /> },
   ];
-  const navButton = (n) => (
-    <button key={n.id} onClick={()=>n.id==="log" ? handleNavigateToLog() : navigate(n.id)} style={{ display:"flex", alignItems:"center", justifyContent:isMobile?"center":"flex-start", gap:isMobile?5:10, padding:isMobile?"8px 10px":"9px 14px", margin:isMobile?0:"2px 8px", borderRadius:10, cursor:"pointer", fontSize:isMobile?10:13, fontWeight:page===n.id?600:500, border:"none", background:page===n.id?d.accentSoft:"transparent", color:page===n.id?d.accent:d.text2, minWidth:isMobile?66:"auto", width:isMobile?"auto":"calc(100% - 16px)", textAlign:"left", flexDirection:isMobile?"column":"row", boxShadow:!isMobile&&page===n.id?`inset 3px 0 0 ${d.accent}`:"none", position:"relative", transition:"background 0.15s, color 0.15s" }}>
-      {n.icon}
-      <span>{isMobile ? n.label.replace("Start Workout","Start").replace("Personal Records","PRs").replace("Body Weight","Weight") : n.label}</span>
-      {n.badge ? <span style={{ background:d.danger, color:"#fff", borderRadius:20, fontSize:10, fontWeight:700, padding:"1px 5px", marginLeft:"auto" }}>{n.badge}</span> : null}
-    </button>
-  );
+  const mobileNavItems = [
+    { id:"dashboard", label:"Home",     icon:<GridIcon /> },
+    { id:"log",       label:"Workout",  icon:<PlusIcon /> },
+    { id:"progress",  label:"Progress", icon:<TrendIcon /> },
+    { id:"routines",  label:"Routines", icon:<ListIcon /> },
+    { id:"profile",   label:"Profile",  icon:<UserIcon /> },
+  ];
+
+  const sideNavBtn = (n) => {
+    const active = page === n.id;
+    return (
+      <button key={n.id} onClick={()=>n.id==="log"?handleNavigateToLog():navigate(n.id)}
+        style={{ display:"flex", alignItems:"center", gap:10, padding:"9px 12px", margin:"1px 8px", borderRadius:10, cursor:"pointer", fontSize:13, fontWeight:active?600:500, border:"none", background:active?d.accentSoft:"transparent", color:active?d.accent:d.text2, width:"calc(100% - 16px)", textAlign:"left", boxShadow:active?`inset 3px 0 0 ${d.accent}`:"none", transition:"background 0.15s, color 0.15s" }}>
+        {n.icon}
+        <span>{n.label}</span>
+        {n.badge ? <span style={{ background:d.danger, color:"#fff", borderRadius:20, fontSize:10, fontWeight:700, padding:"1px 5px", marginLeft:"auto" }}>{n.badge}</span> : null}
+      </button>
+    );
+  };
 
   return (
-    <div style={{ display:"flex", flexDirection:isMobile?"column":"row", height:"100vh", overflow:"hidden", fontFamily:"'Inter',-apple-system,BlinkMacSystemFont,sans-serif", fontSize:15, color:d.text, background:d.bg }}>
-      <aside style={{ width:224, minWidth:224, background:d.surface, borderRight:`1px solid ${d.border}`, display:isMobile?"none":"flex", flexDirection:"column" }}>
-        <div style={{ padding:"20px 16px 12px" }}>
-          <img src="/logo.png" alt="PeakSet" style={{ height:40, width:"auto", maxWidth:"100%", display:"block" }} />
-          <div style={{ fontSize:11, color:d.text3, marginTop:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontWeight:500 }}>{profile.profile_name || session.user.email}</div>
-        </div>
-        <div style={{ padding:"2px 8px 4px", fontSize:10, fontWeight:700, color:d.text3, letterSpacing:".1em", textTransform:"uppercase" }}>Navigation</div>
-        {navItems.map(navButton)}
-        <div style={{ marginTop:"auto", padding:10, borderTop:`1px solid ${d.border}`, display:"flex", flexDirection:"column", gap:6 }}>
-          {streak > 0 && <div style={{ background:d.secondarySoft, color:d.secondary, fontSize:12, fontWeight:700, padding:"8px 12px", borderRadius:10, display:"flex", alignItems:"center", gap:6 }}>🔥 <strong>{streak}</strong> day streak</div>}
-          <button onClick={toggleDark} style={{ background:d.surface2, border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 12px", fontSize:12, fontWeight:600, cursor:"pointer", color:d.text2 }}>
-            {dark ? "☀️ Light Mode" : "🌙 Dark Mode"}
-          </button>
-          <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 12px", fontSize:12, fontWeight:600, cursor:"pointer", color:d.text3 }}>
-            Sign Out
-          </button>
-        </div>
-      </aside>
+    <div style={{ display:"flex", flexDirection:"row", height:"100dvh", overflow:"hidden", fontFamily:"'Inter',-apple-system,BlinkMacSystemFont,sans-serif", fontSize:15, color:d.text, background:d.bg }}>
 
-      {isMobile&&(
-        <div style={{ background:d.surface, borderBottom:`1px solid ${d.border}`, padding:"12px 12px 8px", flexShrink:0 }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-            <div>
-              <img src="/logo.png" alt="PeakSet" style={{ height:32, width:"auto", display:"block" }} />
-              <div style={{ fontSize:11, color:d.text3 }}>{profile.profile_name || session.user.email}</div>
-            </div>
-            <div style={{ display:"flex", gap:6 }}>
-              <button onClick={toggleDark} style={hs(d).btnSm}>{dark ? "Light" : "Dark"}</button>
-              <button onClick={handleSignOut} style={hs(d).btnSm}>Out</button>
-            </div>
+      {/* Desktop sidebar */}
+      {!isMobile && (
+        <aside style={{ width:220, minWidth:220, background:d.surface, borderRight:`1px solid ${d.border}`, display:"flex", flexDirection:"column" }}>
+          <div style={{ padding:"20px 16px 16px" }}>
+            <img src="/logo.png" alt="PeakSet" style={{ height:36, width:"auto", maxWidth:"100%", display:"block", marginBottom:4 }} />
+            <div style={{ fontSize:11, color:d.text3, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", fontWeight:500 }}>{profile.profile_name || session.user.email}</div>
           </div>
-          <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:2 }}>
-            {navItems.map(navButton)}
+
+          {/* Start Workout CTA */}
+          <div style={{ padding:"0 12px 16px" }}>
+            <button onClick={handleNavigateToLog} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"11px 0", borderRadius:12, border:"none", background:`linear-gradient(135deg,${d.accent},${d.accentHover})`, color:"#fff", fontSize:14, fontWeight:700, cursor:"pointer", boxShadow:`0 4px 16px ${d.accent}44`, letterSpacing:"-0.2px" }}>
+              <PlusIcon /> Start Workout
+            </button>
           </div>
-        </div>
+
+          {/* Main nav */}
+          <div style={{ padding:"0 0 4px", fontSize:10, fontWeight:700, color:d.text3, letterSpacing:".1em", textTransform:"uppercase", paddingLeft:20 }}>Main</div>
+          {sideNavItems.map(sideNavBtn)}
+
+          <div style={{ padding:"12px 0 4px", fontSize:10, fontWeight:700, color:d.text3, letterSpacing:".1em", textTransform:"uppercase", paddingLeft:20 }}>Community</div>
+          {sideNavBtn({ id:"social", label:"Social", icon:<UsersIcon />, badge: pendingRequestCount||null })}
+
+          <div style={{ padding:"12px 0 4px", fontSize:10, fontWeight:700, color:d.text3, letterSpacing:".1em", textTransform:"uppercase", paddingLeft:20 }}>Account</div>
+          {sideNavBtn({ id:"profile", label:"Profile", icon:<UserIcon /> })}
+
+          <div style={{ marginTop:"auto", padding:10, borderTop:`1px solid ${d.border}`, display:"flex", flexDirection:"column", gap:6 }}>
+            {streak > 0 && <div style={{ background:d.secondarySoft, color:d.secondary, fontSize:12, fontWeight:700, padding:"8px 12px", borderRadius:10, display:"flex", alignItems:"center", gap:6 }}>🔥 <strong>{streak}</strong> day streak</div>}
+            <button onClick={toggleDark} style={{ background:d.surface2, border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 12px", fontSize:12, fontWeight:600, cursor:"pointer", color:d.text2 }}>{dark ? "☀️ Light Mode" : "🌙 Dark Mode"}</button>
+            <button onClick={handleSignOut} style={{ background:"none", border:`1px solid ${d.border}`, borderRadius:8, padding:"7px 12px", fontSize:12, fontWeight:600, cursor:"pointer", color:d.text3 }}>Sign Out</button>
+          </div>
+        </aside>
       )}
 
-      <main style={{ flex:1, overflowY:"auto", padding:isMobile?16:32 }}>
+      <main style={{ flex:1, overflowY:"auto", padding:isMobile?"16px 16px 90px":32 }}>
         {dataLoading ? (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", color:d.text3 }}>
             <div style={{ textAlign:"center" }}>
@@ -1026,21 +1106,33 @@ function MainApp({ session, d, dark, toggleDark }) {
           </div>
         ) : (
           <>
-            {page==="dashboard"  && <Dashboard workouts={workouts} prs={prs} bwLog={bwLog} allEx={allEx} navigate={navigate} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
-            {page==="log"        && <LogWorkout logState={logState} setLogState={setLogState} workoutStarted={workoutStarted} setWorkoutStarted={setWorkoutStarted} prs={prs} workouts={workouts} allEx={allEx} workoutTypes={workoutTypes} typeLabels={typeLabels} saveCustomEx={handleSaveCustomEx} submit={handleSubmitWorkout} onCancel={handleCancelWorkout} todayDay={todayDay} showToast={showToast} isMobile={isMobile} d={d} />}
-            {page==="history"    && <History workouts={workouts} prs={prs} allEx={allEx} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
-            {page==="prs"        && <PRs prs={prs} workouts={workouts} allEx={allEx} d={d} />}
-            {page==="musclemap"  && <MuscleHeatmap prs={prs} allEx={allEx} bwLog={bwLog} d={d} />}
-            {page==="bodyweight" && <BodyWeight bwLog={bwLog} saveBw={handleSaveBw} deleteBw={handleDeleteBw} showToast={showToast} isMobile={isMobile} d={d} />}
-            {page==="routines"   && <Routines splitTemplates={SPLIT_TEMPLATES} selectedSplitId={selectedSplitId} setSelectedSplitId={setSelectedSplitId} customRoutine={customRoutine} setCustomRoutine={setCustomRoutine} routine={activeRoutine} prs={prs} allEx={allEx} navigate={navigate} showToast={showToast} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
-            {page==="social"     && <Social userId={userId} profile={profile} friendships={friendships} setFriendships={setFriendships} showToast={showToast} isMobile={isMobile} d={d} />}
-            {page==="calculator" && <OneRepMax d={d} />}
-            {page==="profile"    && <Profile profile={profile} email={session.user.email} prs={prs} bwLog={bwLog} allEx={allEx} selectedSplitId={selectedSplitId} userId={userId} isMobile={isMobile} d={d} />}
+            {page==="dashboard" && <Dashboard workouts={workouts} prs={prs} bwLog={bwLog} allEx={allEx} navigate={navigate} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} profile={profile} isMobile={isMobile} d={d} />}
+            {page==="log"       && <LogWorkout logState={logState} setLogState={setLogState} workoutStarted={workoutStarted} setWorkoutStarted={setWorkoutStarted} prs={prs} workouts={workouts} allEx={allEx} workoutTypes={workoutTypes} typeLabels={typeLabels} saveCustomEx={handleSaveCustomEx} submit={handleSubmitWorkout} onCancel={handleCancelWorkout} todayDay={todayDay} showToast={showToast} isMobile={isMobile} d={d} />}
+            {page==="progress"  && <ProgressHub tab={progressTab} setTab={setProgressTab} workouts={workouts} prs={prs} bwLog={bwLog} allEx={allEx} deleteWorkout={handleDeleteWorkout} saveBw={handleSaveBw} deleteBw={handleDeleteBw} showToast={showToast} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
+            {page==="routines"  && <Routines splitTemplates={SPLIT_TEMPLATES} selectedSplitId={selectedSplitId} setSelectedSplitId={setSelectedSplitId} customRoutine={customRoutine} setCustomRoutine={setCustomRoutine} routine={activeRoutine} prs={prs} allEx={allEx} navigate={navigate} showToast={showToast} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
+            {page==="social"    && <Social userId={userId} profile={profile} friendships={friendships} setFriendships={setFriendships} showToast={showToast} isMobile={isMobile} d={d} />}
+            {page==="profile"   && <Profile profile={profile} email={session.user.email} prs={prs} bwLog={bwLog} allEx={allEx} selectedSplitId={selectedSplitId} userId={userId} isMobile={isMobile} d={d} />}
           </>
         )}
       </main>
 
-      {toast && <div style={{ position:"fixed", bottom:isMobile?16:28, right:isMobile?16:28, left:isMobile?16:"auto", background:d.text, color:d.bg, padding:"11px 20px", borderRadius:12, fontSize:13, fontWeight:500, zIndex:999, boxShadow:"0 8px 32px rgba(0,0,0,.22)", textAlign:isMobile?"center":"left", maxWidth:320, letterSpacing:"0.01em" }}>{toast}</div>}
+      {toast && <div style={{ position:"fixed", bottom:isMobile?80:28, right:isMobile?16:28, left:isMobile?16:"auto", background:d.text, color:d.bg, padding:"11px 20px", borderRadius:12, fontSize:13, fontWeight:500, zIndex:999, boxShadow:"0 8px 32px rgba(0,0,0,.22)", textAlign:isMobile?"center":"left", maxWidth:320, letterSpacing:"0.01em" }}>{toast}</div>}
+
+      {/* Mobile bottom nav */}
+      {isMobile && (
+        <nav style={{ position:"fixed", bottom:0, left:0, right:0, background:d.surface, borderTop:`1px solid ${d.border}`, display:"flex", zIndex:50, paddingBottom:"env(safe-area-inset-bottom)" }}>
+          {mobileNavItems.map(n => {
+            const active = page === n.id || (n.id==="progress" && ["history","prs","musclemap","bodyweight","calculator"].includes(page));
+            return (
+              <button key={n.id} onClick={()=>n.id==="log"?handleNavigateToLog():navigate(n.id)}
+                style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:3, padding:"10px 4px 8px", border:"none", background:"none", cursor:"pointer", color:active?d.accent:d.text3, fontSize:10, fontWeight:active?700:500, transition:"color 0.15s" }}>
+                <span style={{ fontSize:20 }}>{n.icon}</span>
+                {n.label}
+              </button>
+            );
+          })}
+        </nav>
+      )}
 
       {friendAddTarget && (
         <div style={hs(d).overlay} onClick={()=>setFriendAddTarget(null)}>
@@ -1070,29 +1162,111 @@ function MainApp({ session, d, dark, toggleDark }) {
   );
 }
 
-// DASHBOARD
-function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeLabels, isMobile, d }) {
-  const recent = useMemo(() => [...workouts].sort((a,b)=>b.date-a.date).slice(0,3), [workouts]);
-  const latestBW = useMemo(() => bwLog.length ? [...bwLog].sort((a,b)=>b.date-a.date)[0] : null, [bwLog]);
+// PROGRESS HUB — groups History, PRs, Body Weight, Muscle Map, 1RM Calculator
+function ProgressHub({ tab, setTab, workouts, prs, bwLog, allEx, deleteWorkout, saveBw, deleteBw, showToast, typeLabels, isMobile, d }) {
+  const tabs = [
+    { id:"history",    label:"History" },
+    { id:"prs",        label:"PRs" },
+    { id:"bodyweight", label:"Body Weight" },
+    { id:"musclemap",  label:"Muscle Map" },
+    { id:"calculator", label:"1RM Calc" },
+  ];
   return (
     <div>
-      <h1 style={hs(d).h1}>Dashboard</h1>
-      <p style={hs(d).sub}>Your training overview</p>
-      <div style={{ display:"grid", gridTemplateColumns:isMobile?"repeat(3,1fr)":"repeat(3,1fr)", gap:12, marginBottom:20 }}>
-        <StatCard val={workouts.length} label="Workouts" d={d}/>
-        <StatCard val={Object.keys(prs).length} label="PRs" d={d}/>
+      <h1 style={hs(d).h1}>Progress</h1>
+      <div style={{ display:"flex", gap:6, marginBottom:24, overflowX:"auto", paddingBottom:2 }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={()=>setTab(t.id)}
+            style={{ padding:"7px 16px", borderRadius:20, border:`1px solid ${tab===t.id?d.accent:d.border}`, background:tab===t.id?d.accentSoft:"transparent", color:tab===t.id?d.accent:d.text2, fontSize:13, fontWeight:tab===t.id?700:500, cursor:"pointer", whiteSpace:"nowrap", transition:"all 0.15s" }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {tab==="history"    && <History workouts={workouts} prs={prs} allEx={allEx} deleteWorkout={deleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
+      {tab==="prs"        && <PRs prs={prs} workouts={workouts} allEx={allEx} d={d} />}
+      {tab==="bodyweight" && <BodyWeight bwLog={bwLog} saveBw={saveBw} deleteBw={deleteBw} showToast={showToast} isMobile={isMobile} d={d} />}
+      {tab==="musclemap"  && <MuscleHeatmap prs={prs} allEx={allEx} bwLog={bwLog} d={d} />}
+      {tab==="calculator" && <OneRepMax d={d} />}
+    </div>
+  );
+}
+
+// DASHBOARD
+function Dashboard({ workouts, prs, bwLog, allEx, navigate, deleteWorkout, typeLabels, profile, isMobile, d }) {
+  const recent   = useMemo(() => [...workouts].sort((a,b)=>b.date-a.date).slice(0,3), [workouts]);
+  const latestBW = useMemo(() => bwLog.length ? [...bwLog].sort((a,b)=>b.date-a.date)[0] : null, [bwLog]);
+  const thisWeek = useMemo(() => {
+    const weekAgo = Date.now() - 7*24*60*60*1000;
+    return workouts.filter(w=>w.date>=weekAgo).length;
+  }, [workouts]);
+  const name = profile?.profile_name?.split(" ")[0] || "there";
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  const hasBenchData = workouts.some(w=>w.exercises?.some(e=>e.id==="bench"));
+  const hasSquatData = workouts.some(w=>w.exercises?.some(e=>e.id==="squat"));
+
+  const actionCards = [
+    { icon:"💪", title:"Start Workout", desc:"Log today's lift.", action:()=>navigate("log"), accent:true },
+    { icon:"📋", title:"Use a Routine", desc:"Follow a saved plan.", action:()=>navigate("routines") },
+    { icon:"⚖️", title:"Track Weight",  desc:"Log today's body weight.", action:()=>navigate("progress",null,"bodyweight") },
+  ];
+
+  return (
+    <div style={{ maxWidth:760 }}>
+      {/* Hero */}
+      <div style={{ marginBottom:28 }}>
+        <div style={{ fontSize:isMobile?22:28, fontWeight:900, letterSpacing:"-0.8px", color:d.text, lineHeight:1.15, marginBottom:6 }}>
+          {greeting}, {name}.
+        </div>
+        <div style={{ fontSize:15, color:d.text3 }}>
+          {workouts.length === 0 ? "Welcome to PeakSet — start your first workout below." : `${thisWeek} workout${thisWeek!==1?"s":""} this week. Keep it up.`}
+        </div>
+      </div>
+
+      {/* Action cards */}
+      <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr 1fr 1fr":"repeat(3,1fr)", gap:10, marginBottom:24 }}>
+        {actionCards.map(c=>(
+          <button key={c.title} onClick={c.action} style={{ ...hs(d).card, border:c.accent?`1.5px solid ${d.accent}`:undefined, background:c.accent?d.accentSoft:d.surface, cursor:"pointer", textAlign:"left", padding:isMobile?14:18, transition:"box-shadow 0.15s" }}>
+            <div style={{ fontSize:isMobile?20:24, marginBottom:8 }}>{c.icon}</div>
+            <div style={{ fontSize:isMobile?12:14, fontWeight:700, color:c.accent?d.accent:d.text, marginBottom:3 }}>{c.title}</div>
+            {!isMobile && <div style={{ fontSize:12, color:d.text3 }}>{c.desc}</div>}
+          </button>
+        ))}
+      </div>
+
+      {/* Stats row */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:24 }}>
+        <StatCard val={workouts.length} label="Total Workouts" d={d}/>
+        <StatCard val={Object.keys(prs).length} label="PRs Tracked" d={d}/>
         <StatCard val={latestBW?latestBW.weight+"lbs":"-"} label="Body Weight" d={d}/>
       </div>
-      <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:16, marginBottom:16 }}>
-        <div style={hs(d).card}><h3 style={hs(d).h3}>Bench Press Progress</h3><ProgressChart workouts={workouts} exId="bench" d={d}/></div>
-        <div style={hs(d).card}><h3 style={hs(d).h3}>Squat Progress</h3><ProgressChart workouts={workouts} exId="squat" d={d}/></div>
-      </div>
+
+      {/* Charts — only show if data exists */}
+      {(hasBenchData || hasSquatData) && (
+        <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:14, marginBottom:20 }}>
+          {hasBenchData && <div style={hs(d).card}><h3 style={hs(d).h3}>Bench Press</h3><ProgressChart workouts={workouts} exId="bench" d={d}/></div>}
+          {hasSquatData && <div style={hs(d).card}><h3 style={hs(d).h3}>Squat</h3><ProgressChart workouts={workouts} exId="squat" d={d}/></div>}
+        </div>
+      )}
+
+      {/* Recent workouts */}
       <div style={hs(d).card}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
           <h3 style={{...hs(d).h3,marginBottom:0}}>Recent Workouts</h3>
-          <button style={hs(d).btnSm} onClick={()=>navigate("history")}>View all</button>
+          {recent.length>0 && <button style={hs(d).btnSm} onClick={()=>navigate("progress",null,"history")}>View all</button>}
         </div>
-        {recent.length ? recent.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={allEx} onDelete={deleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d}/>) : <Empty icon="" title="No workouts yet" desc="Start a workout to get moving" d={d}/>}
+        {recent.length
+          ? recent.map(w=><WorkoutEntry key={w.id} w={w} prs={prs} allEx={allEx} onDelete={deleteWorkout} typeLabels={typeLabels} isMobile={isMobile} d={d}/>)
+          : (
+            <div style={{ textAlign:"center", padding:"28px 0" }}>
+              <div style={{ fontSize:32, marginBottom:10 }}>🏋️</div>
+              <div style={{ fontSize:15, fontWeight:700, color:d.text, marginBottom:6 }}>No workouts yet</div>
+              <div style={{ fontSize:13, color:d.text3, marginBottom:16 }}>Log your first session to start tracking your progress.</div>
+              <button onClick={()=>navigate("log")} style={{ ...hs(d).btn, background:d.accent, color:d.accentText }}>Start Workout</button>
+            </div>
+          )
+        }
       </div>
     </div>
   );
