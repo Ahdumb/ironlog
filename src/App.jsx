@@ -1098,7 +1098,7 @@ function MainApp({ session, d, dark, toggleDark }) {
 
       {/* Mobile top logo bar */}
       {isMobile && (
-        <div style={{ position:"fixed", top:0, left:0, right:0, height:56, background:"transparent", display:"flex", alignItems:"center", justifyContent:"center", paddingRight:12, zIndex:40 }}>
+        <div style={{ position:"relative", height:56, background:"transparent", display:"flex", alignItems:"center", justifyContent:"center", paddingRight:12 }}>
           <img src="/logo-full.png" alt="PeakSet" style={{ height:34, width:"auto" }} />
           <button onClick={toggleDark} style={{ position:"absolute", right:12, background:"none", border:`1px solid ${d.border}`, borderRadius:8, padding:"6px 10px", cursor:"pointer", color:d.text2, display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600 }}>
             {dark ? <><SunIcon/> Light</> : <><MoonIcon/> Dark</>}
@@ -1106,7 +1106,7 @@ function MainApp({ session, d, dark, toggleDark }) {
         </div>
       )}
 
-      <main style={{ flex:1, overflowY:"auto", padding:isMobile?"72px 16px 90px":32 }}>
+      <main style={{ flex:1, overflowY:"auto", padding:isMobile?"16px 16px 90px":32 }}>
         {dataLoading ? (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", color:d.text3 }}>
             <div style={{ textAlign:"center" }}>
