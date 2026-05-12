@@ -1096,17 +1096,16 @@ function MainApp({ session, d, dark, toggleDark }) {
         </aside>
       )}
 
-      {/* Mobile top logo bar */}
+      <main style={{ flex:1, overflowY:"auto", padding:isMobile?"0 0 90px":32 }}>
+      {/* Mobile top logo bar — scrolls with content */}
       {isMobile && (
-        <div style={{ position:"relative", height:56, background:"transparent", display:"flex", alignItems:"center", justifyContent:"center", paddingRight:12 }}>
+        <div style={{ height:56, display:"flex", alignItems:"center", justifyContent:"center", position:"relative", marginBottom:4 }}>
           <img src="/logo-full.png" alt="PeakSet" style={{ height:34, width:"auto" }} />
-          <button onClick={toggleDark} style={{ position:"absolute", right:12, background:"none", border:`1px solid ${d.border}`, borderRadius:8, padding:"6px 10px", cursor:"pointer", color:d.text2, display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600 }}>
+          <button onClick={toggleDark} style={{ position:"absolute", right:16, background:"none", border:`1px solid ${d.border}`, borderRadius:8, padding:"6px 10px", cursor:"pointer", color:d.text2, display:"flex", alignItems:"center", gap:5, fontSize:12, fontWeight:600 }}>
             {dark ? <><SunIcon/> Light</> : <><MoonIcon/> Dark</>}
           </button>
         </div>
       )}
-
-      <main style={{ flex:1, overflowY:"auto", padding:isMobile?"16px 16px 90px":32 }}>
         {dataLoading ? (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"100%", color:d.text3 }}>
             <div style={{ textAlign:"center" }}>
@@ -1115,14 +1114,14 @@ function MainApp({ session, d, dark, toggleDark }) {
             </div>
           </div>
         ) : (
-          <>
+          <div style={{ padding:isMobile?"0 16px":0 }}>
             {page==="dashboard" && <Dashboard workouts={workouts} prs={prs} bwLog={bwLog} allEx={allEx} navigate={navigate} deleteWorkout={handleDeleteWorkout} typeLabels={typeLabels} profile={profile} isMobile={isMobile} d={d} />}
             {page==="log"       && <LogWorkout logState={logState} setLogState={setLogState} workoutStarted={workoutStarted} setWorkoutStarted={setWorkoutStarted} prs={prs} workouts={workouts} allEx={allEx} workoutTypes={workoutTypes} typeLabels={typeLabels} saveCustomEx={handleSaveCustomEx} submit={handleSubmitWorkout} onCancel={handleCancelWorkout} todayDay={todayDay} showToast={showToast} isMobile={isMobile} d={d} />}
             {page==="progress"  && <ProgressHub tab={progressTab} setTab={setProgressTab} workouts={workouts} prs={prs} bwLog={bwLog} allEx={allEx} deleteWorkout={handleDeleteWorkout} saveBw={handleSaveBw} deleteBw={handleDeleteBw} showToast={showToast} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
             {page==="routines"  && <Routines splitTemplates={SPLIT_TEMPLATES} selectedSplitId={selectedSplitId} setSelectedSplitId={setSelectedSplitId} customRoutine={customRoutine} setCustomRoutine={setCustomRoutine} routine={activeRoutine} prs={prs} allEx={allEx} navigate={navigate} showToast={showToast} typeLabels={typeLabels} isMobile={isMobile} d={d} />}
             {page==="social"    && <Social userId={userId} profile={profile} friendships={friendships} setFriendships={setFriendships} showToast={showToast} isMobile={isMobile} d={d} />}
             {page==="profile"   && <Profile profile={profile} email={session.user.email} prs={prs} bwLog={bwLog} allEx={allEx} selectedSplitId={selectedSplitId} userId={userId} isMobile={isMobile} d={d} />}
-          </>
+          </div>
         )}
       </main>
 
